@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { Plus, X, Bell } from 'lucide-react'
+import { Plus, X, Bell, Trash2 } from 'lucide-react'
 import BottomNav from '../components/common/BottomNav'
 import pet1 from '../assets/pet1.png'
 import { useTodoStore } from '../store/todoStore'
 import { CATEGORY_LABELS, CATEGORY_ICONS, STATUS_LABELS } from '../types'
-import type { Category, TodoStatus, Priority } from '../types'
+import type { Category, Todo, TodoStatus, Priority } from '../types'
 
 const ALL_CATS: Category[] = ['finance', 'housing', 'employment', 'education', 'culture']
 
@@ -43,13 +43,16 @@ const defaultForm: AddForm = {
 }
 
 export default function ChecklistPage() {
-  const { todos, addTodo, changeStatus, deleteTodo } = useTodoStore()
+  const { todos, addTodo, updateTodo, changeStatus, deleteTodo } = useTodoStore()
 
   const today = new Date()
   const [selectedDate, setSelectedDate] = useState(toDateStr(today))
   const [filterStatus, setFilterStatus] = useState<TodoStatus | 'all'>('all')
   const [showAdd, setShowAdd] = useState(false)
   const [form, setForm] = useState<AddForm>({ ...defaultForm, dueDate: selectedDate })
+  const [showEdit, setShowEdit] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState<AddForm>({ ...defaultForm })
 
   const weekDates = getWeekDates(today)
   const todayStr = toDateStr(today)
@@ -79,6 +82,31 @@ export default function ChecklistPage() {
     })
     setForm({ ...defaultForm, dueDate: selectedDate })
     setShowAdd(false)
+  }
+
+  const handleEditOpen = (todo: Todo) => {
+    setEditingId(todo.id)
+    setEditForm({
+      content: todo.content,
+      category: todo.category,
+      dueDate: todo.dueDate ?? selectedDate,
+      priority: todo.priority,
+      hasNotification: todo.hasNotification,
+    })
+    setShowEdit(true)
+  }
+
+  const handleEditSave = () => {
+    if (!editingId || !editForm.content.trim()) return
+    updateTodo(editingId, {
+      content: editForm.content.trim(),
+      category: editForm.category,
+      dueDate: editForm.dueDate || selectedDate,
+      priority: editForm.priority,
+      hasNotification: editForm.hasNotification,
+    })
+    setShowEdit(false)
+    setEditingId(null)
   }
 
   const statusColors: Record<TodoStatus, string> = {
@@ -205,7 +233,10 @@ export default function ChecklistPage() {
                     </div>
                   </button>
 
-                  <div className="flex-1 min-w-0">
+                  <button
+                    onClick={() => handleEditOpen(todo)}
+                    className="flex-1 min-w-0 text-left touch-manipulation"
+                  >
                     <p className={`text-sm font-medium leading-snug mb-1 ${
                       todo.status === 'done' ? 'line-through text-text-disabled' : 'text-text-basic'
                     }`}>
@@ -222,13 +253,13 @@ export default function ChecklistPage() {
                       </span>
                       {todo.hasNotification && <Bell size={11} className="text-primary" />}
                     </div>
-                  </div>
+                  </button>
 
                   <button
                     onClick={() => deleteTodo(todo.id)}
                     className="p-1 touch-manipulation flex-shrink-0"
                   >
-                    <X size={15} className="text-text-disabled" />
+                    <Trash2 size={15} className="text-text-disabled" />
                   </button>
                 </div>
 
@@ -257,7 +288,7 @@ export default function ChecklistPage() {
       </main>
 
       {/* Bottom: Add button */}
-      <div className="fixed bottom-[68px] left-1/2 -translate-x-1/2 w-full max-w-[480px] px-4 pointer-events-none">
+      <div className="fixed bottom-[80px] left-1/2 -translate-x-1/2 w-full max-w-[480px] px-4 pointer-events-none">
         <button
           onClick={() => setShowAdd(true)}
           className="pointer-events-auto w-full btn-primary shadow-md"
@@ -265,6 +296,79 @@ export default function ChecklistPage() {
           <Plus size={16} className="mr-1" /> 투두리스트 추가하기
         </button>
       </div>
+
+      {/* Edit sheet */}
+      {showEdit && (
+        <div className="fixed inset-0 z-50 flex items-end">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowEdit(false)} />
+          <div className="relative w-full max-w-[480px] mx-auto bg-white rounded-t-2xl px-5 pt-5 pb-8 animate-slide-up">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-text-basic">할 일 수정</h3>
+              <button onClick={() => setShowEdit(false)}>
+                <X size={20} className="text-text-disabled" />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <input
+                type="text"
+                value={editForm.content}
+                onChange={(e) => setEditForm({ ...editForm, content: e.target.value })}
+                placeholder="할 일 내용을 입력하세요"
+                autoFocus
+                className="input-field"
+              />
+
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={editForm.category}
+                  onChange={(e) => setEditForm({ ...editForm, category: e.target.value as Category })}
+                  className="input-field text-sm"
+                >
+                  {ALL_CATS.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {CATEGORY_ICONS[cat]} {CATEGORY_LABELS[cat]}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={editForm.priority}
+                  onChange={(e) => setEditForm({ ...editForm, priority: e.target.value as Priority })}
+                  className="input-field text-sm"
+                >
+                  <option value="high">🔴 높음</option>
+                  <option value="medium">🟡 보통</option>
+                  <option value="low">⚪ 낮음</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-text-subtle mb-1">마감일</label>
+                <input
+                  type="date"
+                  value={editForm.dueDate}
+                  onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })}
+                  className="input-field"
+                />
+              </div>
+
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-text-basic">알림</span>
+                <button
+                  onClick={() => setEditForm({ ...editForm, hasNotification: !editForm.hasNotification })}
+                  className={`toggle ${editForm.hasNotification ? 'bg-primary' : 'bg-border-default'}`}
+                >
+                  <div className={`toggle-knob ${editForm.hasNotification ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                </button>
+              </div>
+
+              <button onClick={handleEditSave} disabled={!editForm.content.trim()} className="btn-primary">
+                수정하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add sheet */}
       {showAdd && (
