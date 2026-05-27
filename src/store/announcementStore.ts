@@ -1,0 +1,86 @@
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import { mockAnnouncements } from '../data/mockData'
+import type { Announcement, Category } from '../types'
+
+interface AnnouncementState {
+  announcements: Announcement[]
+  searchQuery: string
+  filterCategory: Category | 'all'
+  sortBy: 'popular' | 'latest' | 'deadline' | 'recommended'
+  setSearchQuery: (q: string) => void
+  setFilterCategory: (c: Category | 'all') => void
+  setSortBy: (s: 'popular' | 'latest' | 'deadline' | 'recommended') => void
+  toggleBookmark: (id: string) => void
+  getFiltered: () => Announcement[]
+  getBookmarked: () => Announcement[]
+}
+
+export const useAnnouncementStore = create<AnnouncementState>()(
+  persist(
+    (set, get) => ({
+      announcements: mockAnnouncements,
+      searchQuery: '',
+      filterCategory: 'all',
+      sortBy: 'popular',
+
+      setSearchQuery: (q) => set({ searchQuery: q }),
+      setFilterCategory: (c) => set({ filterCategory: c }),
+      setSortBy: (s) => set({ sortBy: s }),
+
+      toggleBookmark: (id) =>
+        set((state) => ({
+          announcements: state.announcements.map((a) =>
+            a.id === id
+              ? {
+                  ...a,
+                  isBookmarked: !a.isBookmarked,
+                  bookmarkCount: a.isBookmarked
+                    ? a.bookmarkCount - 1
+                    : a.bookmarkCount + 1,
+                }
+              : a
+          ),
+        })),
+
+      getFiltered: () => {
+        const { announcements, searchQuery, filterCategory, sortBy } = get()
+        let result = announcements
+
+        if (filterCategory !== 'all') {
+          result = result.filter((a) => a.category === filterCategory)
+        }
+
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase()
+          result = result.filter(
+            (a) =>
+              a.title.toLowerCase().includes(q) ||
+              a.organization.toLowerCase().includes(q) ||
+              a.tags.some((t) => t.toLowerCase().includes(q))
+          )
+        }
+
+        switch (sortBy) {
+          case 'popular':
+            return [...result].sort((a, b) => b.bookmarkCount - a.bookmarkCount)
+          case 'latest':
+            return [...result].sort(
+              (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+            )
+          case 'deadline':
+            return [...result].sort(
+              (a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime()
+            )
+          case 'recommended':
+            return [...result].sort((a, b) => b.bookmarkCount - a.bookmarkCount)
+          default:
+            return result
+        }
+      },
+
+      getBookmarked: () => get().announcements.filter((a) => a.isBookmarked),
+    }),
+    { name: 'didim-announcements' }
+  )
+)

@@ -1,0 +1,172 @@
+/* KRDS Design Tokens */
+@import 'krds-uiux/resources/css/token/krds_tokens.css';
+/* KRDS Component Styles (buttons, inputs, badges) */
+@import 'krds-uiux/resources/css/component/component.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── KRDS Base ── */
+@layer base {
+  html {
+    font-size: 10px; /* KRDS uses 10px base for rem units */
+    font-family: 'Pretendard GOV', 'Pretendard', -apple-system, BlinkMacSystemFont, 'system-ui', sans-serif;
+    -webkit-text-size-adjust: 100%;
+    word-break: keep-all;
+  }
+
+  body {
+    font-size: 1.5rem; /* 15px = body-small */
+    color: #1e2124;    /* KRDS text-basic = gray-90 */
+    background-color: #f4f5f6; /* KRDS bg-page = gray-5 */
+    margin: 0;
+    padding: 0;
+    overscroll-behavior: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100dvh;
+    position: relative;
+    background-color: #f4f5f6;
+    /* KRDS-style frame border on desktop */
+    box-shadow: 0 0 0 1px #cdd1d5;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
+  }
+
+  /* Remove iOS input styling */
+  input, button, select, textarea {
+    appearance: none;
+    -webkit-appearance: none;
+    font-family: inherit;
+  }
+}
+
+/* ── KRDS Component Overrides for Mobile App ── */
+@layer components {
+  /* KRDS Button – primary */
+  .btn-primary {
+    @apply inline-flex items-center justify-center h-11 px-6
+           bg-primary text-white text-sm font-bold rounded
+           transition-colors touch-manipulation select-none
+           active:bg-primary-pressed disabled:bg-[#cdd1d5] disabled:text-[#8a949e] disabled:cursor-not-allowed;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: #0b50d0;
+  }
+
+  /* KRDS Button – secondary */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center h-11 px-6
+           bg-primary-light text-primary text-sm font-bold rounded
+           border border-primary transition-colors touch-manipulation select-none
+           active:bg-primary-lighter disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  /* KRDS Button – tertiary (ghost) */
+  .btn-tertiary {
+    @apply inline-flex items-center justify-center h-11 px-6
+           bg-transparent text-[#58616a] text-sm font-bold rounded
+           border border-[#b1b8be] transition-colors touch-manipulation select-none
+           hover:bg-bg-subtle active:bg-[#e6e8ea] disabled:opacity-40;
+  }
+
+  /* KRDS Input */
+  .krds-field {
+    @apply w-full h-11 px-4 rounded text-sm text-text-basic
+           border border-border-strong bg-white
+           placeholder:text-text-disabled
+           focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
+           disabled:bg-bg-subtle disabled:text-text-disabled disabled:cursor-not-allowed
+           transition-colors;
+  }
+  .krds-field.error {
+    @apply border-danger;
+  }
+
+  /* KRDS Card */
+  .krds-card {
+    @apply bg-white border border-border-light rounded-lg;
+  }
+
+  /* KRDS Section */
+  .krds-section {
+    @apply bg-white border-b border-border-light;
+  }
+
+  /* KRDS Tab chip */
+  .krds-chip {
+    @apply flex-shrink-0 h-8 px-3 rounded-full text-xs font-medium
+           border border-border-light bg-white text-text-subtle
+           transition-colors touch-manipulation select-none;
+  }
+  .krds-chip.active {
+    @apply bg-primary text-white border-primary;
+  }
+
+  /* KRDS Badge */
+  .krds-tag {
+    @apply inline-flex items-center gap-1 text-xs font-medium
+           px-2 py-0.5 rounded-sm border;
+  }
+  .krds-tag-primary {
+    @apply krds-tag bg-primary-light text-primary border-primary-lighter;
+  }
+  .krds-tag-success {
+    @apply krds-tag bg-success-light text-success-text border-[#a9dab4];
+  }
+  .krds-tag-danger {
+    @apply krds-tag bg-danger-light text-danger-text border-[#f7afa1];
+  }
+  .krds-tag-warning {
+    @apply krds-tag bg-warning-light text-warning-text border-[#ffc95c];
+  }
+  .krds-tag-gray {
+    @apply krds-tag bg-bg-subtle text-text-subtle border-border-light;
+  }
+
+  /* D-day badge */
+  .dday-urgent  { @apply text-xs font-bold px-2 py-0.5 rounded-sm bg-danger-light text-danger-text; }
+  .dday-warning { @apply text-xs font-bold px-2 py-0.5 rounded-sm bg-warning-light text-warning-text; }
+  .dday-normal  { @apply text-xs font-bold px-2 py-0.5 rounded-sm bg-primary-light text-primary; }
+  .dday-closed  { @apply text-xs font-bold px-2 py-0.5 rounded-sm bg-bg-subtle text-text-disabled; }
+}
+
+/* ── Utilities ── */
+@layer utilities {
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.8rem);
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .touch-manipulation { touch-action: manipulation; }
+
+  /* KRDS step indicator bar */
+  .step-bar {
+    @apply h-1 flex-1 rounded-full;
+  }
+}
+
+/* Desktop frame */
+@media (min-width: 640px) {
+  body { background-color: #cdd1d5; }
+}
+
+/* Select custom arrow */
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236d7882' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1.2rem center;
+  padding-right: 3.6rem !important;
+}
