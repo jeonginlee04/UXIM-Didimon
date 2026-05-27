@@ -1,10 +1,18 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { Bookmark, ExternalLink, Users, Calendar, MapPin, Tag } from 'lucide-react'
+import { Bookmark, ExternalLink, Users, Calendar, MapPin, Tag, ChevronLeft } from 'lucide-react'
 import Header from '../components/common/Header'
 import CategoryBadge from '../components/common/CategoryBadge'
 import { useAnnouncementStore } from '../store/announcementStore'
 import { useTodoStore } from '../store/todoStore'
 import pet1 from '../assets/pet1.png'
+
+const THUMB_BG: Record<string, string> = {
+  finance: '#D6EDE3', housing: '#D6EDE3', employment: '#D6EDE3',
+  education: '#D6EDE3', culture: '#D6EDE3',
+}
+const THUMB_ICON: Record<string, string> = {
+  finance: '💰', housing: '🏠', employment: '💼', education: '📚', culture: '🎨',
+}
 
 export default function AnnouncementDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -66,6 +74,30 @@ export default function AnnouncementDetailPage() {
       />
 
       <main className="flex-1 pb-28 overflow-y-auto">
+        {/* Poster Image */}
+        <div
+          className="relative w-full flex-shrink-0 flex items-center justify-center"
+          style={{ height: '253px', backgroundColor: THUMB_BG[ann.category] }}
+        >
+          <span className="text-9xl opacity-30">{THUMB_ICON[ann.category]}</span>
+
+          <button
+            onClick={() => navigate(-1)}
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/70 rounded-full flex items-center justify-center shadow-sm touch-manipulation"
+          >
+            <ChevronLeft size={20} className="text-text-basic" />
+          </button>
+
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className={`rounded-full ${i === 1 ? 'w-4 h-1.5 bg-primary' : 'w-1.5 h-1.5 bg-white/60'}`}
+              />
+            ))}
+          </div>
+        </div>
+
         {/* Hero card */}
         <div className="bg-white px-5 py-5 mb-2">
           <div className="flex items-start justify-between mb-3">

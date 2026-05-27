@@ -262,7 +262,7 @@ export default function ChecklistPage() {
           onClick={() => setShowAdd(true)}
           className="pointer-events-auto w-full btn-primary shadow-md"
         >
-          <Plus size={16} className="mr-1" /> 투두리스트 수정하기
+          <Plus size={16} className="mr-1" /> 투두리스트 추가하기
         </button>
       </div>
 
