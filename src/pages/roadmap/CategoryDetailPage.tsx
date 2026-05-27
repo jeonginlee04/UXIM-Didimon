@@ -1,34 +1,35 @@
-import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
-import Header from '../../components/common/Header'
-import { useRoadmapStore } from '../../store/roadmapStore'
-import { useTodoStore } from '../../store/todoStore'
-import { useAnnouncementStore } from '../../store/announcementStore'
+import { useParams, useNavigate } from "react-router-dom";
+import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import Header from "../../components/common/Header";
+import { useRoadmapStore } from "../../store/roadmapStore";
+import { useTodoStore } from "../../store/todoStore";
+import { useAnnouncementStore } from "../../store/announcementStore";
 import {
   ROADMAP_CATEGORY_LABELS,
   ROADMAP_CATEGORY_ICONS,
   ROADMAP_CATEGORY_COLORS,
   ROADMAP_CATEGORY_BG,
   STATUS_LABELS,
-} from '../../types'
-import type { RoadmapCategory } from '../../types'
+} from "../../types";
+import type { RoadmapCategory } from "../../types";
 
 export default function CategoryDetailPage() {
-  const { cat } = useParams<{ cat: string }>()
-  const navigate = useNavigate()
-  const category = cat as RoadmapCategory
+  const { cat } = useParams<{ cat: string }>();
+  const navigate = useNavigate();
+  const category = cat as RoadmapCategory;
 
-  const { getByCategory, getCategoryProgress, toggleExpand } = useRoadmapStore()
-  const { todos } = useTodoStore()
-  const { announcements } = useAnnouncementStore()
+  const { getByCategory, getCategoryProgress, toggleExpand } =
+    useRoadmapStore();
+  const { todos } = useTodoStore();
+  const { announcements } = useAnnouncementStore();
 
-  const items = getByCategory(category)
-  const { completed, total, pct } = getCategoryProgress(category)
+  const items = getByCategory(category);
+  const { completed, total, pct } = getCategoryProgress(category);
 
-  const color = ROADMAP_CATEGORY_COLORS[category]
-  const bg = ROADMAP_CATEGORY_BG[category]
-  const icon = ROADMAP_CATEGORY_ICONS[category]
-  const label = ROADMAP_CATEGORY_LABELS[category]
+  const color = ROADMAP_CATEGORY_COLORS[category];
+  const bg = ROADMAP_CATEGORY_BG[category];
+  const icon = ROADMAP_CATEGORY_ICONS[category];
+  const label = ROADMAP_CATEGORY_LABELS[category];
 
   if (!label) {
     return (
@@ -38,7 +39,7 @@ export default function CategoryDetailPage() {
           <p className="text-sm text-text-subtle">잘못된 카테고리예요.</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -47,10 +48,7 @@ export default function CategoryDetailPage() {
 
       <main className="flex-1 px-4 py-4">
         {/* Category progress card */}
-        <div
-          className="rounded-xl p-4 mb-5"
-          style={{ backgroundColor: bg }}
-        >
+        <div className="rounded-xl p-4 mb-5" style={{ backgroundColor: bg }}>
           <div className="flex items-center gap-3 mb-3">
             <div
               className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
@@ -60,12 +58,16 @@ export default function CategoryDetailPage() {
             </div>
             <div>
               <p className="font-bold text-text-basic">{label}</p>
-              <p className="text-xs text-text-subtle">{completed}/{total} 단계 진행 중</p>
+              <p className="text-xs text-text-subtle">
+                {completed}/{total} 단계 진행 중
+              </p>
             </div>
           </div>
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-xs text-text-subtle">전체 진행률</span>
-            <span className="text-xs font-bold" style={{ color }}>{pct}%</span>
+            <span className="text-xs font-bold" style={{ color }}>
+              {pct}%
+            </span>
           </div>
           <div className="h-2.5 bg-white/60 rounded-full overflow-hidden">
             <div
@@ -78,13 +80,16 @@ export default function CategoryDetailPage() {
         {/* Roadmap items */}
         <div className="flex flex-col gap-3">
           {items.map((item, idx) => {
-            const itemTodos = todos.filter((t) => item.todoIds.includes(t.id))
+            const itemTodos = todos.filter((t) => item.todoIds.includes(t.id));
             const linkedAnn = item.linkedAnnouncementId
               ? announcements.find((a) => a.id === item.linkedAnnouncementId)
-              : null
+              : null;
 
             return (
-              <div key={item.id} className="bg-white rounded-xl border border-border-light overflow-hidden">
+              <div
+                key={item.id}
+                className="bg-white rounded-xl border border-border-light overflow-hidden"
+              >
                 {/* Item header */}
                 <button
                   onClick={() => toggleExpand(item.id)}
@@ -97,47 +102,54 @@ export default function CategoryDetailPage() {
                     {idx + 1}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-text-basic">{item.title}</p>
-                    <p className="text-xs text-text-subtle mt-0.5 truncate">{item.description}</p>
+                    <p className="text-sm font-bold text-text-basic">
+                      {item.title}
+                    </p>
+                    <p className="text-xs text-text-subtle mt-0.5 truncate">
+                      {item.description}
+                    </p>
                   </div>
-                  {item.isExpanded
-                    ? <ChevronUp size={16} className="text-text-disabled flex-shrink-0" />
-                    : <ChevronDown size={16} className="text-text-disabled flex-shrink-0" />
-                  }
+                  {item.isExpanded ? (
+                    <ChevronUp
+                      size={16}
+                      className="text-text-disabled flex-shrink-0"
+                    />
+                  ) : (
+                    <ChevronDown
+                      size={16}
+                      className="text-text-disabled flex-shrink-0"
+                    />
+                  )}
                 </button>
 
                 {/* Expanded content */}
                 {item.isExpanded && (
                   <div className="px-4 pb-4 border-t border-border-light">
-                    {/* Related todos */}
+                    {/* 행동 제안 */}
                     {itemTodos.length > 0 && (
                       <div className="mt-3">
-                        <p className="text-xs font-bold text-text-subtle mb-2">관련 투두</p>
+                        <p className="text-xs font-bold text-text-subtle mb-2">
+                          행동 제안
+                        </p>
                         <div className="flex flex-col gap-2">
                           {itemTodos.map((todo) => (
                             <div
                               key={todo.id}
                               className="flex items-center gap-2 bg-bg-subtle rounded-lg px-3 py-2"
                             >
-                              <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
-                                todo.status === 'done'
-                                  ? 'bg-primary border-primary'
-                                  : 'border-border-default'
-                              }`}>
-                                {todo.status === 'done' && (
-                                  <span className="text-white text-[8px] font-bold">✓</span>
-                                )}
-                              </div>
-                              <p className={`text-xs flex-1 ${
-                                todo.status === 'done'
-                                  ? 'line-through text-text-disabled'
-                                  : 'text-text-basic'
-                              }`}>
+                              <p className="text-xs flex-1 text-text-basic">
                                 {todo.content}
                               </p>
-                              <span className="text-[10px] text-text-disabled">
-                                {STATUS_LABELS[todo.status]}
-                              </span>
+                              <button
+                                onClick={() =>
+                                  navigate(
+                                    `/checklist?content=${encodeURIComponent(todo.content)}&category=${encodeURIComponent(category)}`,
+                                  )
+                                }
+                                className="text-[10px] font-bold text-primary bg-primary-light rounded-md px-2 py-1 flex-shrink-0"
+                              >
+                                투두 추가
+                              </button>
                             </div>
                           ))}
                         </div>
@@ -152,16 +164,23 @@ export default function CategoryDetailPage() {
                       >
                         <span className="text-base">📢</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-primary truncate">{linkedAnn.title}</p>
-                          <p className="text-[10px] text-primary/70">{linkedAnn.organization}</p>
+                          <p className="text-xs font-bold text-primary truncate">
+                            {linkedAnn.title}
+                          </p>
+                          <p className="text-[10px] text-primary/70">
+                            {linkedAnn.organization}
+                          </p>
                         </div>
-                        <ExternalLink size={13} className="text-primary flex-shrink-0" />
+                        <ExternalLink
+                          size={13}
+                          className="text-primary flex-shrink-0"
+                        />
                       </button>
                     )}
                   </div>
                 )}
               </div>
-            )
+            );
           })}
         </div>
 
@@ -175,5 +194,5 @@ export default function CategoryDetailPage() {
         )}
       </main>
     </div>
-  )
+  );
 }

@@ -1,21 +1,24 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import { mockTodos } from '../data/mockData'
-import type { Todo, Category, TodoStatus } from '../types'
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { mockTodos } from "../data/mockData";
+import type { Todo, Category, TodoStatus } from "../types";
 
 interface TodoState {
-  todos: Todo[]
-  addTodo: (todo: Omit<Todo, 'id' | 'createdAt'>) => void
-  updateTodo: (id: string, updates: Partial<Todo>) => void
-  deleteTodo: (id: string) => void
-  changeStatus: (id: string, status: TodoStatus) => void
-  getTodosByCategory: (category: Category) => Todo[]
-  getTodosByDate: (date: string) => Todo[]
-  getActiveTodos: () => Todo[]
-  getProgress: (category?: Category) => number
+  todos: Todo[];
+  addTodo: (todo: Omit<Todo, "id" | "createdAt">) => void;
+  updateTodo: (id: string, updates: Partial<Todo>) => void;
+  deleteTodo: (id: string) => void;
+  changeStatus: (id: string, status: TodoStatus) => void;
+  getTodosByCategory: (category: Category) => Todo[];
+  getTodosByDate: (date: string) => Todo[];
+  getActiveTodos: () => Todo[];
+  getProgress: (category?: Category) => number;
 }
 
-const generateId = () => `todo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+const getTodayString = () => new Date().toISOString().split("T")[0];
+
+const generateId = () =>
+  `todo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
 export const useTodoStore = create<TodoState>()(
   persist(
@@ -26,56 +29,76 @@ export const useTodoStore = create<TodoState>()(
         const newTodo: Todo = {
           ...todoData,
           id: generateId(),
-          createdAt: new Date().toISOString().split('T')[0],
-        }
-        set((state) => ({ todos: [newTodo, ...state.todos] }))
+          createdAt: getTodayString(),
+        };
+
+        set((state) => ({
+          todos: [newTodo, ...state.todos],
+        }));
       },
 
-      updateTodo: (id, updates) =>
+      updateTodo: (id, updates) => {
         set((state) => ({
-          todos: state.todos.map((t) =>
-            t.id === id
-              ? {
-                  ...t,
-                  ...updates,
-                  completedAt:
-                    updates.status === 'done'
-                      ? new Date().toISOString().split('T')[0]
-                      : updates.status === 'todo'
-                      ? undefined
-                      : t.completedAt,
-                }
-              : t
-          ),
-        })),
+          todos: state.todos.map((todo) => {
+            if (todo.id !== id) return todo;
 
-      deleteTodo: (id) =>
-        set((state) => ({ todos: state.todos.filter((t) => t.id !== id) })),
+            const nextStatus = updates.status ?? todo.status;
 
-      changeStatus: (id, status) => get().updateTodo(id, { status }),
+            return {
+              ...todo,
+              ...updates,
+              completedAt:
+                nextStatus === "done"
+                  ? (todo.completedAt ?? getTodayString())
+                  : undefined,
+            };
+          }),
+        }));
+      },
 
-      getTodosByCategory: (category) =>
-        get().todos.filter((t) => t.category === category),
+      deleteTodo: (id) => {
+        set((state) => ({
+          todos: state.todos.filter((todo) => todo.id !== id),
+        }));
+      },
 
-      getTodosByDate: (date) =>
-        get().todos.filter((t) => {
-          if (!t.dueDate) return false
-          return t.dueDate === date
-        }),
+      changeStatus: (id, status) => {
+        get().updateTodo(id, { status });
+      },
 
-      getActiveTodos: () =>
-        get().todos.filter((t) => t.status !== 'done'),
+      getTodosByCategory: (category) => {
+        return get().todos.filter((todo) => todo.category === category);
+      },
+
+      getTodosByDate: (date) => {
+        return get().todos.filter((todo) => todo.dueDate === date);
+      },
+
+      getActiveTodos: () => {
+        return get().todos.filter((todo) => todo.status !== "done");
+      },
 
       getProgress: (category) => {
-        const todos = category
-          ? get().todos.filter((t) => t.category === category)
-          : get().todos
-        if (todos.length === 0) return 0
-        const done = todos.filter((t) => t.status === 'done').length
-        const inProgress = todos.filter((t) => t.status === 'in_progress').length
-        return Math.round(((done + inProgress * 0.5) / todos.length) * 100)
+        const targetTodos = category
+          ? get().todos.filter((todo) => todo.category === category)
+          : get().todos;
+
+        if (targetTodos.length === 0) return 0;
+
+        const doneCount = targetTodos.filter(
+          (todo) => todo.status === "done",
+        ).length;
+        const inProgressCount = targetTodos.filter(
+          (todo) => todo.status === "in_progress",
+        ).length;
+
+        return Math.round(
+          ((doneCount + inProgressCount * 0.5) / targetTodos.length) * 100,
+        );
       },
     }),
-    { name: 'didim-todos' }
-  )
-)
+    {
+      name: "didim-todos",
+    },
+  ),
+);
