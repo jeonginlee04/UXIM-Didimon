@@ -1,18 +1,17 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { mockTodos } from '../data/mockData'
-import type { Todo, Category, TodoStatus, Priority } from '../types'
+import type { Todo, Category, TodoStatus } from '../types'
 
 interface TodoState {
   todos: Todo[]
-  deletedTodos: Todo[]
   addTodo: (todo: Omit<Todo, 'id' | 'createdAt'>) => void
   updateTodo: (id: string, updates: Partial<Todo>) => void
   deleteTodo: (id: string) => void
-  restoreTodo: (id: string) => void
   changeStatus: (id: string, status: TodoStatus) => void
   getTodosByCategory: (category: Category) => Todo[]
-  getTodayTodos: () => Todo[]
+  getTodosByDate: (date: string) => Todo[]
+  getActiveTodos: () => Todo[]
   getProgress: (category?: Category) => number
 }
 
@@ -22,7 +21,6 @@ export const useTodoStore = create<TodoState>()(
   persist(
     (set, get) => ({
       todos: mockTodos,
-      deletedTodos: [],
 
       addTodo: (todoData) => {
         const newTodo: Todo = {
@@ -52,38 +50,21 @@ export const useTodoStore = create<TodoState>()(
         })),
 
       deleteTodo: (id) =>
-        set((state) => {
-          const todo = state.todos.find((t) => t.id === id)
-          if (!todo) return state
-          return {
-            todos: state.todos.filter((t) => t.id !== id),
-            deletedTodos: [todo, ...state.deletedTodos].slice(0, 20),
-          }
-        }),
+        set((state) => ({ todos: state.todos.filter((t) => t.id !== id) })),
 
-      restoreTodo: (id) =>
-        set((state) => {
-          const todo = state.deletedTodos.find((t) => t.id === id)
-          if (!todo) return state
-          return {
-            todos: [{ ...todo, status: 'todo' as TodoStatus }, ...state.todos],
-            deletedTodos: state.deletedTodos.filter((t) => t.id !== id),
-          }
-        }),
-
-      changeStatus: (id, status) => {
-        get().updateTodo(id, { status })
-      },
+      changeStatus: (id, status) => get().updateTodo(id, { status }),
 
       getTodosByCategory: (category) =>
         get().todos.filter((t) => t.category === category),
 
-      getTodayTodos: () => {
-        const today = new Date().toISOString().split('T')[0]
-        return get().todos.filter(
-          (t) => t.status !== 'done' && (!t.dueDate || t.dueDate >= today)
-        ).slice(0, 5)
-      },
+      getTodosByDate: (date) =>
+        get().todos.filter((t) => {
+          if (!t.dueDate) return false
+          return t.dueDate === date
+        }),
+
+      getActiveTodos: () =>
+        get().todos.filter((t) => t.status !== 'done'),
 
       getProgress: (category) => {
         const todos = category

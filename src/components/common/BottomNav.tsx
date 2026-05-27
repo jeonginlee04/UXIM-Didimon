@@ -1,50 +1,43 @@
-import { NavLink } from 'react-router-dom'
-import { Home, Megaphone, Map, CheckSquare, User } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { Search, CheckSquare, Map, User } from 'lucide-react'
 
-const navItems = [
-  { to: '/home',          icon: Home,        label: '홈'       },
-  { to: '/announcements', icon: Megaphone,   label: '공고'     },
-  { to: '/roadmap',       icon: Map,         label: '로드맵'   },
-  { to: '/checklist',     icon: CheckSquare, label: '체크리스트' },
-  { to: '/mypage',        icon: User,        label: '마이페이지' },
+const tabs = [
+  { path: '/search',    icon: Search,      label: '검색' },
+  { path: '/checklist', icon: CheckSquare, label: '할일' },
+  { path: '/roadmap',   icon: Map,         label: '로드맵' },
+  { path: '/mypage',    icon: User,        label: '프로필' },
 ]
 
 export default function BottomNav() {
+  const { pathname } = useLocation()
+  const navigate = useNavigate()
+
+  const isActive = (path: string) =>
+    pathname === path || (pathname.startsWith(path + '/') && path !== '/')
+
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border-light safe-bottom"
-      role="navigation"
-      aria-label="하단 메뉴"
-    >
-      <div className="max-w-[480px] mx-auto flex">
-        {navItems.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              `flex-1 flex flex-col items-center justify-center py-2 gap-0.5 transition-colors touch-manipulation ${
-                isActive ? 'text-primary' : 'text-text-disabled'
-              }`
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <Icon
-                  size={20}
-                  strokeWidth={isActive ? 2.5 : 1.8}
-                  aria-hidden="true"
-                />
-                <span
-                  className={`text-[1rem] font-medium leading-none ${
-                    isActive ? 'text-primary' : 'text-text-disabled'
-                  }`}
-                >
-                  {label}
-                </span>
-              </>
-            )}
-          </NavLink>
-        ))}
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-white border-t border-border-light safe-bottom z-40">
+      <div className="flex">
+        {tabs.map(({ path, icon: Icon, label }) => {
+          const active = isActive(path)
+          return (
+            <button
+              key={path}
+              onClick={() => navigate(path)}
+              className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5 touch-manipulation"
+              aria-label={label}
+            >
+              <Icon
+                size={22}
+                strokeWidth={active ? 2.5 : 1.8}
+                className={active ? 'text-primary' : 'text-text-disabled'}
+              />
+              <span className={`text-[10px] font-medium ${active ? 'text-primary' : 'text-text-disabled'}`}>
+                {label}
+              </span>
+            </button>
+          )
+        })}
       </div>
     </nav>
   )

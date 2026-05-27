@@ -6,17 +6,22 @@ import SplashPage from './pages/onboarding/SplashPage'
 import LoginPage from './pages/onboarding/LoginPage'
 import RegisterPage from './pages/onboarding/RegisterPage'
 import PhoneVerifyPage from './pages/onboarding/PhoneVerifyPage'
-import RoleSelectPage from './pages/onboarding/RoleSelectPage'
-import ProfileInputPage from './pages/onboarding/ProfileInputPage'
 import InterestSelectPage from './pages/onboarding/InterestSelectPage'
 
 // Main
-import HomePage from './pages/HomePage'
-import AnnouncementsPage from './pages/AnnouncementsPage'
+import SearchPage from './pages/SearchPage'
+import AnnouncementFilterPage from './pages/AnnouncementFilterPage'
 import AnnouncementDetailPage from './pages/AnnouncementDetailPage'
-import RoadmapPage from './pages/RoadmapPage'
 import ChecklistPage from './pages/ChecklistPage'
+import RoadmapPage from './pages/RoadmapPage'
+import DailyQuestPage from './pages/roadmap/DailyQuestPage'
+import CategoryDetailPage from './pages/roadmap/CategoryDetailPage'
+import WeeklyCheckPage from './pages/roadmap/WeeklyCheckPage'
 import MyPage from './pages/MyPage'
+import NicknameSettingPage from './pages/mypage/NicknameSettingPage'
+import EditProfilePage from './pages/mypage/EditProfilePage'
+import NotificationSettingsPage from './pages/mypage/NotificationSettingsPage'
+import KeywordSettingPage from './pages/mypage/KeywordSettingPage'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isOnboarded } = useAuthStore()
@@ -24,6 +29,10 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />
   }
   return <>{children}</>
+}
+
+function Guarded({ children }: { children: React.ReactNode }) {
+  return <RequireAuth>{children}</RequireAuth>
 }
 
 export default function App() {
@@ -37,59 +46,28 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/register/phone" element={<PhoneVerifyPage />} />
-        <Route path="/register/role" element={<RoleSelectPage />} />
-        <Route path="/register/profile" element={<ProfileInputPage />} />
         <Route path="/register/interest" element={<InterestSelectPage />} />
 
-        {/* Main (protected) */}
-        <Route
-          path="/home"
-          element={
-            <RequireAuth>
-              <HomePage />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/announcements"
-          element={
-            <RequireAuth>
-              <AnnouncementsPage />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/announcements/:id"
-          element={
-            <RequireAuth>
-              <AnnouncementDetailPage />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/roadmap"
-          element={
-            <RequireAuth>
-              <RoadmapPage />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/checklist"
-          element={
-            <RequireAuth>
-              <ChecklistPage />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/mypage"
-          element={
-            <RequireAuth>
-              <MyPage />
-            </RequireAuth>
-          }
-        />
+        {/* Search tab */}
+        <Route path="/search" element={<Guarded><SearchPage /></Guarded>} />
+        <Route path="/search/filter" element={<Guarded><AnnouncementFilterPage /></Guarded>} />
+        <Route path="/search/:id" element={<Guarded><AnnouncementDetailPage /></Guarded>} />
+
+        {/* Checklist tab */}
+        <Route path="/checklist" element={<Guarded><ChecklistPage /></Guarded>} />
+
+        {/* Roadmap tab */}
+        <Route path="/roadmap" element={<Guarded><RoadmapPage /></Guarded>} />
+        <Route path="/roadmap/quest" element={<Guarded><DailyQuestPage /></Guarded>} />
+        <Route path="/roadmap/category/:cat" element={<Guarded><CategoryDetailPage /></Guarded>} />
+        <Route path="/roadmap/weekly-check" element={<Guarded><WeeklyCheckPage /></Guarded>} />
+
+        {/* Mypage tab */}
+        <Route path="/mypage" element={<Guarded><MyPage /></Guarded>} />
+        <Route path="/mypage/nickname" element={<Guarded><NicknameSettingPage /></Guarded>} />
+        <Route path="/mypage/edit" element={<Guarded><EditProfilePage /></Guarded>} />
+        <Route path="/mypage/notifications" element={<Guarded><NotificationSettingsPage /></Guarded>} />
+        <Route path="/mypage/keywords" element={<Guarded><KeywordSettingPage /></Guarded>} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

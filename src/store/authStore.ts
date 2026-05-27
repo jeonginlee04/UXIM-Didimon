@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { User, Category, Role } from '../types'
+import type { User, InterestKeyword, NotificationSettings } from '../types'
 
 interface AuthState {
   user: User | null
@@ -10,6 +10,7 @@ interface AuthState {
   logout: () => void
   updateUser: (updates: Partial<User>) => void
   completeOnboarding: () => void
+  addExp: (amount: number) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -21,8 +22,7 @@ export const useAuthStore = create<AuthState>()(
 
       login: (user) => set({ user, isAuthenticated: true }),
 
-      logout: () =>
-        set({ user: null, isAuthenticated: false, isOnboarded: false }),
+      logout: () => set({ user: null, isAuthenticated: false, isOnboarded: false }),
 
       updateUser: (updates) =>
         set((state) => ({
@@ -30,14 +30,25 @@ export const useAuthStore = create<AuthState>()(
         })),
 
       completeOnboarding: () => set({ isOnboarded: true }),
+
+      addExp: (amount) =>
+        set((state) => {
+          if (!state.user) return state
+          const newExp = state.user.exp + amount
+          return { user: { ...state.user, exp: newExp } }
+        }),
     }),
-    {
-      name: 'didim-auth',
-    }
+    { name: 'didim-auth' }
   )
 )
 
-// Demo login helper
+export const defaultNotificationSettings: NotificationSettings = {
+  newAnnouncement: true,
+  deadlineAlert: true,
+  todoReminder: true,
+  questComplete: true,
+}
+
 export const demoUser: User = {
   id: 'user-1',
   name: '김지원',
@@ -45,7 +56,10 @@ export const demoUser: User = {
   phone: '010-1234-5678',
   email: 'jiwon@email.com',
   birthDate: '2003-03-15',
-  role: 'mentee' as Role,
-  interests: ['finance', 'housing', 'employment'] as Category[],
+  role: 'mentee',
+  interests: ['finance', 'housing', 'employment'] as InterestKeyword[],
+  level: 3,
+  exp: 240,
   createdAt: '2026-04-01',
+  notificationSettings: defaultNotificationSettings,
 }

@@ -1,325 +1,201 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  ChevronDown,
-  ChevronUp,
-  CheckCircle,
-  Circle,
-  Plus,
-  Bookmark,
-  ExternalLink,
-} from 'lucide-react'
-import Header from '../components/common/Header'
 import BottomNav from '../components/common/BottomNav'
-import ProgressBar from '../components/common/ProgressBar'
-import CategoryBadge from '../components/common/CategoryBadge'
+import { useAuthStore } from '../store/authStore'
+import pet2 from '../assets/pet2.png'
 import { useRoadmapStore } from '../store/roadmapStore'
 import { useTodoStore } from '../store/todoStore'
 import { useAnnouncementStore } from '../store/announcementStore'
 import {
-  CATEGORY_LABELS,
-  CATEGORY_COLORS,
-  CATEGORY_ICONS,
+  ROADMAP_CATEGORY_LABELS,
+  ROADMAP_CATEGORY_ICONS,
+  ROADMAP_CATEGORY_COLORS,
+  ROADMAP_CATEGORY_BG,
+  EXP_PER_LEVEL,
+  getLevelProgress,
 } from '../types'
-import type { Category } from '../types'
+import type { RoadmapCategory } from '../types'
 
-const allCategories: Category[] = [
-  'finance', 'housing', 'employment', 'education', 'culture',
-]
+const ROADMAP_CATS: RoadmapCategory[] = ['finance', 'housing', 'employment', 'education']
+
+const CAT_EMOJI: Record<string, string> = {
+  finance: '💰', housing: '🏠', employment: '💼', education: '📚', culture: '🎨',
+}
 
 export default function RoadmapPage() {
   const navigate = useNavigate()
-  const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all')
-  const { items, toggleExpand } = useRoadmapStore()
-  const { todos, changeStatus, addTodo } = useTodoStore()
+  const { user } = useAuthStore()
+  const { getCategoryProgress, dailyQuests, canDoWeeklyCheck } = useRoadmapStore()
+  const { getProgress } = useTodoStore()
   const { announcements } = useAnnouncementStore()
 
-  const getProgress = (category?: Category) => {
-    const catTodos = category
-      ? todos.filter((t) => t.category === category)
-      : todos
-    if (catTodos.length === 0) return 0
-    const done = catTodos.filter((t) => t.status === 'done').length
-    const inProg = catTodos.filter((t) => t.status === 'in_progress').length
-    return Math.round(((done + inProg * 0.5) / catTodos.length) * 100)
-  }
+  const level = user?.level ?? 1
+  const exp = user?.exp ?? 0
+  const levelProgress = getLevelProgress(exp)
+  const completedQuests = dailyQuests.filter((q) => q.isCompleted).length
+  const totalQuests = dailyQuests.length
 
-  const overallProgress = getProgress()
-
-  const visibleItems =
-    activeCategory === 'all'
-      ? items
-      : items.filter((item) => item.category === activeCategory)
-
-  const getItemTodos = (todoIds: string[]) =>
-    todos.filter((t) => todoIds.includes(t.id))
-
-  const getLinkedAnn = (annId?: string) =>
-    annId ? announcements.find((a) => a.id === annId) : undefined
-
-  const handleAddInlineTodo = (roadmapItemId: string, category: Category) => {
-    const content = prompt('추가할 할 일을 입력하세요')
-    if (!content?.trim()) return
-    addTodo({
-      content: content.trim(),
-      category,
-      status: 'todo',
-      priority: 'medium',
-      hasNotification: false,
-      linkedRoadmapItemId: roadmapItemId,
-    })
-  }
+  const latestAnn = [...announcements]
+    .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
+    .slice(0, 2)
 
   return (
-    <div className="min-h-screen bg-bg-page">
-      <Header title="자립 로드맵" showNotification />
-
-      <main className="max-w-md mx-auto pb-24">
-        {/* Overall progress hero */}
-        <div className="bg-white px-5 py-5 mb-3">
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="text-base font-black text-text-basic">전체 자립 진행률</h2>
-            <span className="text-2xl font-black text-primary">{overallProgress}%</span>
+    <div className="min-h-screen flex flex-col bg-bg-page pb-20">
+      {/* Header */}
+      <div className="bg-white border-b border-border-light px-5 pt-5 pb-4">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-base font-bold text-text-basic">
+              {user?.nickname ?? user?.name ?? ''}님의 자립 로드맵
+            </h1>
+            <p className="text-xs text-text-subtle mt-0.5">오늘도 한 걸음씩 나아가요</p>
           </div>
-          <ProgressBar value={overallProgress} height={10} showLabel={false} />
-          <p className="text-xs text-text-disabled mt-2">
-            레벨 {Math.floor(overallProgress / 20) + 1} · 계속 성장 중이에요 🌱
-          </p>
+          <img src={pet2} alt="" className="w-12 h-12 object-contain flex-shrink-0" />
         </div>
 
-        {/* Category progress mini cards */}
-        <div className="px-4 mb-3">
-          <div className="grid grid-cols-3 gap-2">
-            {allCategories.slice(0, 3).map((cat) => {
-              const prog = getProgress(cat)
-              const color = CATEGORY_COLORS[cat]
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat === activeCategory ? 'all' : cat)}
-                  className={`p-3 rounded text-left transition touch-manipulation bg-white border-2 ${
-                    activeCategory === cat
-                      ? 'border-primary'
-                      : 'border-border-light'
-                  }`}
-                >
-                  <p className="text-lg mb-1">{CATEGORY_ICONS[cat]}</p>
-                  <p className="text-[10px] text-text-subtle font-medium mb-1.5">
-                    {CATEGORY_LABELS[cat]}
-                  </p>
-                  <p className="text-sm font-black" style={{ color }}>
-                    {prog}%
-                  </p>
-                  <ProgressBar value={prog} color={color} height={4} animated={false} />
-                </button>
-              )
-            })}
+        {/* Level EXP bar */}
+        <div className="bg-primary-light rounded-xl px-4 py-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-primary bg-primary/20 px-2 py-0.5 rounded-full">
+                Lv.{level}
+              </span>
+              <span className="text-xs text-primary font-medium">
+                {user?.nickname ?? user?.name}
+              </span>
+            </div>
+            <span className="text-xs text-primary font-bold">
+              {levelProgress} / {EXP_PER_LEVEL} EXP
+            </span>
           </div>
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            {allCategories.slice(3).map((cat) => {
-              const prog = getProgress(cat)
-              const color = CATEGORY_COLORS[cat]
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat === activeCategory ? 'all' : cat)}
-                  className={`p-3 rounded text-left transition touch-manipulation bg-white border-2 ${
-                    activeCategory === cat
-                      ? 'border-primary'
-                      : 'border-border-light'
-                  }`}
-                >
-                  <p className="text-lg mb-1">{CATEGORY_ICONS[cat]}</p>
-                  <p className="text-[10px] text-text-subtle font-medium mb-1.5">
-                    {CATEGORY_LABELS[cat]}
-                  </p>
-                  <p className="text-sm font-black" style={{ color }}>
-                    {prog}%
-                  </p>
-                  <ProgressBar value={prog} color={color} height={4} animated={false} />
-                </button>
-              )
-            })}
+          <div className="h-2.5 bg-primary/20 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary rounded-full transition-all duration-700"
+              style={{ width: `${(levelProgress / EXP_PER_LEVEL) * 100}%` }}
+            />
           </div>
         </div>
+      </div>
 
-        {/* Category tab filter */}
-        <div className="px-4 mb-3 flex gap-2 overflow-x-auto scrollbar-hide">
-          <button
-            onClick={() => setActiveCategory('all')}
-            className={`krds-chip touch-manipulation ${activeCategory === 'all' ? 'active' : ''}`}
-          >
-            전체
-          </button>
-          {allCategories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`krds-chip touch-manipulation ${activeCategory === cat ? 'active' : ''}`}
-            >
-              {CATEGORY_ICONS[cat]} {CATEGORY_LABELS[cat]}
-            </button>
-          ))}
-        </div>
-
-        {/* Roadmap items */}
-        <div className="px-4 flex flex-col gap-3">
-          {visibleItems
-            .sort((a, b) => a.order - b.order)
-            .map((item) => {
-              const itemTodos = getItemTodos(item.todoIds)
-              const doneTodos = itemTodos.filter((t) => t.status === 'done').length
-              const linkedAnn = getLinkedAnn(item.linkedAnnouncementId)
-              const itemProgress =
-                itemTodos.length > 0
-                  ? Math.round((doneTodos / itemTodos.length) * 100)
-                  : 0
-
-              return (
-                <div key={item.id} className="krds-card rounded-lg overflow-hidden">
-                  {/* Header */}
-                  <button
-                    onClick={() => toggleExpand(item.id)}
-                    className="w-full text-left touch-manipulation"
-                  >
-                    <div className="p-4">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <CategoryBadge category={item.category} size="sm" />
-                            <span className="text-[10px] text-text-disabled">
-                              Lv.{item.level}
-                            </span>
-                          </div>
-                          <p className="font-bold text-sm text-text-basic leading-snug">
-                            {item.title}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <span
-                            className="text-sm font-black"
-                            style={{ color: CATEGORY_COLORS[item.category] }}
-                          >
-                            {itemProgress}%
-                          </span>
-                          {item.isExpanded ? (
-                            <ChevronUp size={18} className="text-text-disabled" />
-                          ) : (
-                            <ChevronDown size={18} className="text-text-disabled" />
-                          )}
-                        </div>
-                      </div>
-
-                      <ProgressBar
-                        value={itemProgress}
-                        color={CATEGORY_COLORS[item.category]}
-                        height={5}
-                      />
-
-                      {!item.isExpanded && itemTodos.length > 0 && (
-                        <div className="mt-2 flex gap-1.5">
-                          {itemTodos.slice(0, 2).map((todo) => (
-                            <div
-                              key={todo.id}
-                              className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-sm ${
-                                todo.status === 'done'
-                                  ? 'bg-success-light text-success-text'
-                                  : 'bg-bg-subtle text-text-subtle'
-                              }`}
-                            >
-                              {todo.status === 'done' ? (
-                                <CheckCircle size={10} />
-                              ) : (
-                                <Circle size={10} />
-                              )}
-                              <span className="truncate max-w-[80px]">{todo.content}</span>
-                            </div>
-                          ))}
-                          {itemTodos.length > 2 && (
-                            <span className="text-[10px] text-text-disabled self-center">
-                              +{itemTodos.length - 2}개
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </button>
-
-                  {/* Expanded content */}
-                  {item.isExpanded && (
-                    <div className="border-t border-border-light animate-slide-up">
-                      {/* Description */}
-                      <p className="px-4 pt-3 pb-2 text-xs text-text-subtle">
-                        {item.description}
-                      </p>
-
-                      {/* Linked announcement */}
-                      {linkedAnn && (
-                        <button
-                          onClick={() => navigate(`/announcements/${linkedAnn.id}`)}
-                          className="mx-4 mb-3 w-[calc(100%-2rem)] flex items-center gap-2 bg-primary-light rounded p-3 touch-manipulation text-left border border-primary-lighter"
-                        >
-                          <Bookmark size={14} className="text-primary flex-shrink-0" />
-                          <span className="text-xs text-primary font-medium flex-1 truncate">
-                            {linkedAnn.title}
-                          </span>
-                          <ExternalLink size={12} className="text-primary flex-shrink-0" />
-                        </button>
-                      )}
-
-                      {/* Todo list */}
-                      <div className="px-4 pb-2">
-                        {itemTodos.map((todo) => (
-                          <div
-                            key={todo.id}
-                            className="flex items-center gap-3 py-2.5 border-b border-border-light last:border-0"
-                          >
-                            <button
-                              onClick={() =>
-                                changeStatus(
-                                  todo.id,
-                                  todo.status === 'done' ? 'todo' : 'done'
-                                )
-                              }
-                              className="touch-manipulation flex-shrink-0"
-                            >
-                              {todo.status === 'done' ? (
-                                <CheckCircle size={20} className="text-success" />
-                              ) : (
-                                <Circle size={20} className="text-border-default" />
-                              )}
-                            </button>
-                            <span
-                              className={`flex-1 text-xs leading-snug ${
-                                todo.status === 'done'
-                                  ? 'line-through text-text-disabled'
-                                  : 'text-text-subtle'
-                              }`}
-                            >
-                              {todo.content}
-                            </span>
-                            {todo.dueDate && (
-                              <span className="text-[10px] text-text-disabled flex-shrink-0">
-                                ~{todo.dueDate.slice(5)}
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Add todo inline */}
-                      <button
-                        onClick={() => handleAddInlineTodo(item.id, item.category)}
-                        className="w-full flex items-center gap-2 px-4 py-3 text-xs text-primary font-medium border-t border-border-light touch-manipulation hover:bg-bg-page transition"
-                      >
-                        <Plus size={14} />
-                        할 일 추가
-                      </button>
-                    </div>
-                  )}
+      <main className="flex-1 px-4 py-4 flex flex-col gap-4">
+        {/* 공지사항 */}
+        {latestAnn.length > 0 && (
+          <div className="bg-white rounded-xl border border-border-light overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-2 border-b border-border-light bg-primary/5">
+              <span className="text-xs font-bold text-primary">📢 최신 공고</span>
+            </div>
+            {latestAnn.map((ann) => (
+              <button
+                key={ann.id}
+                onClick={() => navigate(`/search/${ann.id}`)}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left active:bg-bg-subtle touch-manipulation border-b border-border-light last:border-0"
+              >
+                <span className="text-base">{CAT_EMOJI[ann.category]}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-text-basic truncate">{ann.title}</p>
+                  <p className="text-[10px] text-text-subtle mt-0.5">{ann.organization}</p>
                 </div>
+                <span className="text-text-disabled">›</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Daily quest */}
+        <button
+          onClick={() => navigate('/roadmap/quest')}
+          className="bg-white rounded-xl border border-border-light p-4 text-left active:bg-bg-subtle touch-manipulation"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">⚡</span>
+              <span className="text-sm font-bold text-text-basic">이번 주 퀘스트</span>
+            </div>
+            <span className="text-xs font-bold text-primary">
+              {completedQuests}/{totalQuests}
+            </span>
+          </div>
+          <div className="h-1.5 bg-bg-subtle rounded-full overflow-hidden mb-2">
+            <div
+              className="h-full bg-warning rounded-full transition-all"
+              style={{ width: `${totalQuests > 0 ? (completedQuests / totalQuests) * 100 : 0}%` }}
+            />
+          </div>
+          <p className="text-xs text-text-subtle">
+            {completedQuests === totalQuests
+              ? '모든 퀘스트를 완료했어요! 🎉'
+              : `${totalQuests - completedQuests}개 퀘스트가 남아있어요`}
+          </p>
+        </button>
+
+        {/* Weekly check */}
+        {canDoWeeklyCheck() && (
+          <button
+            onClick={() => navigate('/roadmap/weekly-check')}
+            className="bg-primary text-white rounded-xl p-4 text-left active:bg-primary-pressed touch-manipulation"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">📝</span>
+              <div className="flex-1">
+                <p className="text-sm font-bold">이번 주 점검하기</p>
+                <p className="text-xs text-primary-light mt-0.5">한 주의 자립 여정을 돌아보세요</p>
+              </div>
+              <span className="text-xl opacity-80">›</span>
+            </div>
+          </button>
+        )}
+
+        {/* 2×2 Category cards */}
+        <div>
+          <h2 className="text-sm font-bold text-text-basic mb-3">카테고리별 진행 현황</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {ROADMAP_CATS.map((cat) => {
+              const { completed, total } = getCategoryProgress(cat)
+              const todoPct = getProgress(cat)
+              const color = ROADMAP_CATEGORY_COLORS[cat]
+              const bg = ROADMAP_CATEGORY_BG[cat]
+
+              return (
+                <button
+                  key={cat}
+                  onClick={() => navigate(`/roadmap/category/${cat}`)}
+                  className="bg-white rounded-xl border border-border-light p-4 text-left active:bg-bg-subtle touch-manipulation"
+                >
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-3"
+                    style={{ backgroundColor: bg }}
+                  >
+                    {ROADMAP_CATEGORY_ICONS[cat]}
+                  </div>
+                  <p className="text-sm font-bold text-text-basic mb-1">
+                    {ROADMAP_CATEGORY_LABELS[cat]}
+                  </p>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] text-text-subtle">{completed}/{total} 단계</span>
+                    <span className="text-[10px] font-bold" style={{ color }}>
+                      {todoPct}%
+                    </span>
+                  </div>
+                  <div className="h-1.5 bg-bg-subtle rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ width: `${todoPct}%`, backgroundColor: color }}
+                    />
+                  </div>
+                </button>
               )
             })}
+          </div>
+        </div>
+
+        {/* Turtle tip */}
+        <div className="flex items-end gap-3 pb-2">
+          <img src={pet2} alt="" className="w-14 h-14 object-contain flex-shrink-0" />
+          <div className="bg-white rounded-2xl rounded-bl-none px-4 py-3 border border-border-light flex-1 shadow-sm">
+            <p className="text-xs text-text-subtle leading-relaxed">
+              꾸준히 하는 것이 가장 중요해요.
+              <br />오늘도 작은 한 걸음 내딛어봐요!
+            </p>
+          </div>
         </div>
       </main>
 
