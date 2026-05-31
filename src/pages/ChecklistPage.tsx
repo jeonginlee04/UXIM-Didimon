@@ -7,18 +7,25 @@ import { useTodoStore } from '../store/todoStore'
 import { CATEGORY_LABELS, CATEGORY_ICONS, STATUS_LABELS } from '../types'
 import type { Category, TodoStatus, Priority } from '../types'
 
-const ALL_CATS: Category[] = ['finance', 'housing', 'employment', 'education', 'culture']
+const ALL_CATS: Category[] = [
+  "finance",
+  "housing",
+  "employment",
+  "education",
+  "culture",
+];
 
 function getWeekDates(from: Date): Date[] {
-  const monday = new Date(from)
-  const day = monday.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  monday.setDate(monday.getDate() + diff)
+  const monday = new Date(from);
+  const day = monday.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  monday.setDate(monday.getDate() + diff);
+
   return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(monday)
-    d.setDate(monday.getDate() + i)
-    return d
-  })
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return d;
+  });
 }
 
 function calcWeekOffset(today: Date, target: Date): number {
@@ -57,7 +64,7 @@ const defaultForm: TodoForm = {
   dueDate: '',
   priority: 'medium',
   hasNotification: false,
-}
+};
 
 export default function ChecklistPage() {
   const { todos, addTodo, changeStatus, deleteTodo, updateTodo } = useTodoStore()
@@ -72,12 +79,6 @@ export default function ChecklistPage() {
   const [filterStatus, setFilterStatus] = useState<TodoStatus | 'all'>('all')
   const [showAdd, setShowAdd] = useState(false)
   const [addform, setAddForm] = useState<TodoForm>({ ...defaultForm, dueDate: selectedDate, })
-
-  const [showEdit, setShowEdit] = useState(false);
-  const [editingTodo, setEditingTodo] = useState<(typeof todos)[number] | null>(
-    null,
-  );
-  const [editForm, setEditForm] = useState<TodoForm>({ ...defaultForm });
 
   useEffect(() => {
     if (prefilledContent) {
@@ -112,10 +113,28 @@ export default function ChecklistPage() {
     ? dayTodos
     : dayTodos.filter((t) => t.status === filterStatus)
 
-  const doneCount = dayTodos.filter((t) => t.status === 'done').length
-  const progressPct = dayTodos.length > 0 ? Math.round((doneCount / dayTodos.length) * 100) : 0
+  const [showEdit, setShowEdit] = useState(false);
+  const [editingTodo, setEditingTodo] = useState<(typeof todos)[number] | null>(
+    null,
+  );
+  const [editForm, setEditForm] = useState<TodoForm>({ ...defaultForm });
 
-  const hasTodoOnDate = (dateStr: string) => todos.some((t) => t.dueDate === dateStr)
+  // 로드맵에서 넘어온 경우 자동으로 모달 열기
+  useEffect(() => {
+    if (prefilledContent) {
+      setAddForm({
+        ...defaultForm,
+        content: prefilledContent,
+        category: prefilledCategory,
+        dueDate: toDateStr(today),
+      });
+      setShowAdd(true);
+    }
+  }, []);
+
+  const doneCount = dayTodos.filter((t) => t.status === "done").length;
+  const progressPct =
+    dayTodos.length > 0 ? Math.round((doneCount / dayTodos.length) * 100) : 0;
 
   const navigateWeek = (dir: 1 | -1) => {
     if (weekTransitioning) return
@@ -127,19 +146,24 @@ export default function ChecklistPage() {
     }, 180)
   }
 
+  const hasTodoOnDate = (dateStr: string) =>
+    todos.some((t) => t.dueDate === dateStr);
+
   const handleAdd = () => {
-    if (!addform.content.trim()) return
+    if (!addform.content.trim()) return;
+
     addTodo({
       content: addform.content.trim(),
       category: addform.category,
       dueDate: addform.dueDate || selectedDate,
-      status: 'todo',
+      status: "todo",
       priority: addform.priority,
       hasNotification: addform.hasNotification,
-    })
-    setAddForm({ ...defaultForm, dueDate: selectedDate })
-    setShowAdd(false)
-  }
+    });
+
+    setAddForm({ ...defaultForm, dueDate: selectedDate });
+    setShowAdd(false);
+  };
 
   const openEditModal = (todo: (typeof todos)[number]) => {
     setEditingTodo(todo);
@@ -188,17 +212,17 @@ export default function ChecklistPage() {
   }
 
   const statusColors: Record<TodoStatus, string> = {
-    todo:        'bg-bg-subtle text-text-subtle',
-    in_progress: 'bg-primary-light text-primary',
-    done:        'bg-success-light text-success-text',
-  }
+    todo: "bg-bg-subtle text-text-subtle",
+    in_progress: "bg-primary-light text-primary",
+    done: "bg-success-light text-success-text",
+  };
 
   const turtleMsg =
     progressPct === 100
-      ? '오늘 할 일을 다 완료했어요! 대단해요 🎉'
+      ? "오늘 할 일을 다 완료했어요! 대단해요 🎉"
       : dayTodos.length === 0
-      ? '오늘은 예정된 할 일이 없어요. 추가해볼까요?'
-      : `오늘 ${dayTodos.length}개 중 ${doneCount}개 완료했어요. 화이팅!`
+        ? "오늘은 예정된 할 일이 없어요. 추가해볼까요?"
+        : `오늘 ${dayTodos.length}개 중 ${doneCount}개 완료했어요. 화이팅!`;
 
   return (
     <div className="min-h-screen flex flex-col bg-bg-page pb-20">
@@ -282,19 +306,25 @@ export default function ChecklistPage() {
       </div>
 
       <main className="flex-1 px-4 py-4">
-        {/* Turtle speech bubble */}
         <div className="flex items-end gap-3 mb-4">
-          <img src={pet1} alt="" className="w-14 h-14 object-contain flex-shrink-0" />
+          <img
+            src={pet1}
+            alt=""
+            className="w-14 h-14 object-contain flex-shrink-0"
+          />
           <div className="relative bg-white rounded-2xl rounded-bl-none px-4 py-2.5 border border-border-light flex-1 shadow-sm">
-            <p className="text-xs text-text-subtle leading-relaxed">{turtleMsg}</p>
+            <p className="text-xs text-text-subtle leading-relaxed">
+              {turtleMsg}
+            </p>
           </div>
         </div>
 
-        {/* Progress */}
         {dayTodos.length > 0 && (
           <div className="mb-4">
             <div className="flex justify-between text-xs text-text-subtle mb-1.5">
-              <span>{selectedDate === todayStr ? '오늘' : selectedDate} 진행률</span>
+              <span>
+                {selectedDate === todayStr ? "오늘" : selectedDate} 진행률
+              </span>
               <span className="font-bold text-primary">{progressPct}%</span>
             </div>
             <div className="h-2 bg-bg-subtle rounded-full overflow-hidden">
@@ -306,25 +336,25 @@ export default function ChecklistPage() {
           </div>
         )}
 
-        {/* Status filter */}
         <div className="flex gap-2 mb-3 overflow-x-auto scrollbar-hide">
-          {(['all', 'todo', 'in_progress', 'done'] as const).map((s) => (
+          {(["all", "todo", "in_progress", "done"] as const).map((s) => (
             <button
               key={s}
               onClick={() => setFilterStatus(s)}
-              className={`chip whitespace-nowrap ${filterStatus === s ? 'active' : ''}`}
+              className={`chip whitespace-nowrap ${filterStatus === s ? "active" : ""}`}
             >
-              {s === 'all' ? '전체' : STATUS_LABELS[s]}
+              {s === "all" ? "전체" : STATUS_LABELS[s]}
             </button>
           ))}
         </div>
 
-        {/* Todo list */}
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-2">
             <span className="text-4xl">📋</span>
             <p className="text-sm text-text-subtle text-center">
-              {dayTodos.length === 0 ? '이 날은 할 일이 없어요.' : '해당 상태의 할 일이 없어요.'}
+              {dayTodos.length === 0
+                ? "이 날은 할 일이 없어요."
+                : "해당 상태의 할 일이 없어요."}
             </p>
           </div>
         ) : (
@@ -332,37 +362,55 @@ export default function ChecklistPage() {
             {filtered.map((todo) => (
               <div key={todo.id} className="card-bordered p-4">
                 <div className="flex items-start gap-3">
-                  {/* Checkbox */}
                   <button
-                    onClick={() => changeStatus(todo.id, todo.status === 'done' ? 'todo' : 'done')}
+                    onClick={() =>
+                      changeStatus(
+                        todo.id,
+                        todo.status === "done" ? "todo" : "done",
+                      )
+                    }
                     className="mt-0.5 flex-shrink-0 touch-manipulation"
                   >
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                      todo.status === 'done'
-                        ? 'bg-primary border-primary'
-                        : 'border-border-default'
-                    }`}>
-                      {todo.status === 'done' && (
-                        <span className="text-white text-[10px] font-bold">✓</span>
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                        todo.status === "done"
+                          ? "bg-primary border-primary"
+                          : "border-border-default"
+                      }`}
+                    >
+                      {todo.status === "done" && (
+                        <span className="text-white text-[10px] font-bold">
+                          ✓
+                        </span>
                       )}
                     </div>
                   </button>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium leading-snug mb-1 ${
-                      todo.status === 'done' ? 'line-through text-text-disabled' : 'text-text-basic'
-                    }`}>
+                    <p
+                      className={`text-sm font-medium leading-snug mb-1 ${
+                        todo.status === "done"
+                          ? "line-through text-text-disabled"
+                          : "text-text-basic"
+                      }`}
+                    >
                       {todo.content}
                     </p>
+
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${statusColors[todo.status]}`}>
                         {STATUS_LABELS[todo.status]}
                       </span>
+
                       <span className="text-[10px] text-text-disabled">
-                        {CATEGORY_ICONS[todo.category]} {CATEGORY_LABELS[todo.category]}
+                        {CATEGORY_ICONS[todo.category]}{" "}
+                        {CATEGORY_LABELS[todo.category]}
                       </span>
-                      {todo.hasNotification && <Bell size={11} className="text-primary" />}
+
+                      {todo.hasNotification && (
+                        <Bell size={11} className="text-primary" />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -388,7 +436,6 @@ export default function ChecklistPage() {
         )}
       </main>
 
-      {/* Bottom: Add button */}
       <div className="fixed bottom-[68px] left-1/2 -translate-x-1/2 w-full max-w-[480px] px-4 pointer-events-none">
         <button
           onClick={() => setShowAdd(true)}
@@ -398,10 +445,13 @@ export default function ChecklistPage() {
         </button>
       </div>
 
-      {/* Add sheet */}
       {showAdd && (
         <div className="fixed inset-0 z-50 flex items-end">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowAdd(false)} />
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setShowAdd(false)}
+          />
+
           <div className="relative w-full max-w-[480px] mx-auto bg-white rounded-t-2xl px-5 pt-5 pb-8 animate-slide-up">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-text-basic">새 할 일 추가</h3>
@@ -432,6 +482,7 @@ export default function ChecklistPage() {
                     </option>
                   ))}
                 </select>
+
                 <select
                   value={addform.priority}
                   onChange={(e) => setAddForm({ ...addform, priority: e.target.value as Priority })}
@@ -444,7 +495,9 @@ export default function ChecklistPage() {
               </div>
 
               <div>
-                <label className="block text-xs text-text-subtle mb-1">마감일</label>
+                <label className="block text-xs text-text-subtle mb-1">
+                  마감일
+                </label>
                 <input
                   type="date"
                   value={addform.dueDate}
@@ -668,7 +721,123 @@ export default function ChecklistPage() {
         </div>
       )}
 
+      {showEdit && editingTodo && (
+        <div className="fixed inset-0 z-50 flex items-end">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => {
+              setShowEdit(false);
+              setEditingTodo(null);
+            }}
+          />
+
+          <div className="relative w-full max-w-[480px] mx-auto bg-white rounded-t-2xl px-5 pt-5 pb-8 animate-slide-up">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-text-basic">할 일 수정</h3>
+              <button
+                onClick={() => {
+                  setShowEdit(false);
+                  setEditingTodo(null);
+                }}
+              >
+                <X size={20} className="text-text-disabled" />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <input
+                type="text"
+                value={editForm.content}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, content: e.target.value })
+                }
+                placeholder="할 일 내용을 수정하세요"
+                autoFocus
+                className="input-field"
+              />
+
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={editForm.category}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      category: e.target.value as Category,
+                    })
+                  }
+                  className="input-field text-sm"
+                >
+                  {ALL_CATS.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {CATEGORY_ICONS[cat]} {CATEGORY_LABELS[cat]}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={editForm.priority}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      priority: e.target.value as Priority,
+                    })
+                  }
+                  className="input-field text-sm"
+                >
+                  <option value="high">🔴 높음</option>
+                  <option value="medium">🟡 보통</option>
+                  <option value="low">⚪ 낮음</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-text-subtle mb-1">
+                  마감일
+                </label>
+                <input
+                  type="date"
+                  value={editForm.dueDate}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, dueDate: e.target.value })
+                  }
+                  className="input-field"
+                />
+              </div>
+
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-text-basic">알림</span>
+                <button
+                  onClick={() =>
+                    setEditForm({
+                      ...editForm,
+                      hasNotification: !editForm.hasNotification,
+                    })
+                  }
+                  className={`toggle ${editForm.hasNotification ? "bg-primary" : "bg-border-default"}`}
+                >
+                  <div
+                    className={`toggle-knob ${
+                      editForm.hasNotification
+                        ? "translate-x-6"
+                        : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <button
+                onClick={handleEditSave}
+                disabled={!editForm.content.trim()}
+                className="btn-primary"
+              >
+                수정 완료
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <BottomNav />
     </div>
-  )
+  );
 }
