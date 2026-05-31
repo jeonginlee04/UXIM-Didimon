@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, X, Bell, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
 import BottomNav from '../components/common/BottomNav'
 import pet1 from '../assets/pet1.png'
 import { useTodoStore } from '../store/todoStore'
@@ -42,7 +43,7 @@ function toDateStr(d: Date) {
   return `${y}-${m}-${day}`
 }
 
-interface AddForm {
+interface TodoForm {
   content: string
   category: Category
   dueDate: string
@@ -50,7 +51,7 @@ interface AddForm {
   hasNotification: boolean
 }
 
-const defaultForm: AddForm = {
+const defaultForm: TodoForm = {
   content: '',
   category: 'finance',
   dueDate: '',
@@ -59,13 +60,36 @@ const defaultForm: AddForm = {
 }
 
 export default function ChecklistPage() {
-  const { todos, addTodo, changeStatus, deleteTodo } = useTodoStore()
+  const { todos, addTodo, changeStatus, deleteTodo, updateTodo } = useTodoStore()
+
+  const [searchParams] = useSearchParams();
+  const prefilledContent = searchParams.get("content") ?? "";
+  const prefilledCategory = (searchParams.get("category") ??
+    "finance") as Category;
 
   const today = new Date()
   const [selectedDate, setSelectedDate] = useState(toDateStr(today))
   const [filterStatus, setFilterStatus] = useState<TodoStatus | 'all'>('all')
   const [showAdd, setShowAdd] = useState(false)
-  const [form, setForm] = useState<AddForm>({ ...defaultForm, dueDate: toDateStr(today) })
+  const [addform, setAddForm] = useState<TodoForm>({ ...defaultForm, dueDate: selectedDate, })
+
+  const [showEdit, setShowEdit] = useState(false);
+  const [editingTodo, setEditingTodo] = useState<(typeof todos)[number] | null>(
+    null,
+  );
+  const [editForm, setEditForm] = useState<TodoForm>({ ...defaultForm });
+
+  useEffect(() => {
+    if (prefilledContent) {
+      setAddForm({
+        ...defaultForm,
+        content: prefilledContent,
+        category: prefilledCategory,
+        dueDate: toDateStr(today),
+      });
+      setShowAdd(true);
+    }
+  }, []);
 
   const [weekOffset, setWeekOffset] = useState(0)
   const [weekTransitioning, setWeekTransitioning] = useState(false)
@@ -104,24 +128,51 @@ export default function ChecklistPage() {
   }
 
   const handleAdd = () => {
-    if (!form.content.trim()) return
+    if (!addform.content.trim()) return
     addTodo({
-      content: form.content.trim(),
-      category: form.category,
-      dueDate: form.dueDate || selectedDate,
+      content: addform.content.trim(),
+      category: addform.category,
+      dueDate: addform.dueDate || selectedDate,
       status: 'todo',
-      priority: form.priority,
-      hasNotification: form.hasNotification,
+      priority: addform.priority,
+      hasNotification: addform.hasNotification,
     })
-    setForm({ ...defaultForm, dueDate: selectedDate })
+    setAddForm({ ...defaultForm, dueDate: selectedDate })
     setShowAdd(false)
   }
 
+  const openEditModal = (todo: (typeof todos)[number]) => {
+    setEditingTodo(todo);
+    setEditForm({
+      content: todo.content,
+      category: todo.category,
+      dueDate: todo.dueDate ?? selectedDate,
+      priority: todo.priority,
+      hasNotification: todo.hasNotification,
+    });
+    setShowEdit(true);
+  };
+
+  const handleEditSave = () => {
+    if (!editingTodo) return;
+    if (!editForm.content.trim()) return;
+
+    updateTodo(editingTodo.id, {
+      content: editForm.content.trim(),
+      category: editForm.category,
+      dueDate: editForm.dueDate,
+      priority: editForm.priority,
+      hasNotification: editForm.hasNotification,
+    });
+
+    setShowEdit(false);
+    setEditingTodo(null);
+  };
   const handlePickerDateSelect = (year: number, month: number, day: number) => {
     const target = new Date(year, month, day)
     const ds = toDateStr(target)
     setSelectedDate(ds)
-    setForm((f) => ({ ...f, dueDate: ds }))
+    setAddForm((f) => ({ ...f, dueDate: ds }))
     setWeekOffset(calcWeekOffset(today, target))
     setShowMonthPicker(false)
   }
@@ -196,7 +247,7 @@ export default function ChecklistPage() {
                   key={ds}
                   onClick={() => {
                     setSelectedDate(ds)
-                    setForm((f) => ({ ...f, dueDate: ds }))
+                    setAddForm((f) => ({ ...f, dueDate: ds }))
                   }}
                   className="flex flex-col items-center gap-1 touch-manipulation py-1"
                 >
@@ -314,33 +365,23 @@ export default function ChecklistPage() {
                       {todo.hasNotification && <Bell size={11} className="text-primary" />}
                     </div>
                   </div>
+                </div>
+
+                <div className="flex gap-1.5 mt-3">
+                  <button
+                    onClick={() => openEditModal(todo)}
+                    className="flex-1 py-1 rounded-lg text-[11px] font-medium bg-primary text-white touch-manipulation"
+                  >
+                    수정
+                  </button>
 
                   <button
                     onClick={() => deleteTodo(todo.id)}
-                    className="p-1 touch-manipulation flex-shrink-0"
+                    className="flex-1 py-1 rounded-lg text-[11px] font-medium bg-bg-subtle text-danger touch-manipulation"
                   >
-                    <X size={15} className="text-text-disabled" />
+                    삭제
                   </button>
                 </div>
-
-                {/* Status quick-change */}
-                {todo.status !== 'done' && (
-                  <div className="flex gap-1.5 mt-3">
-                    {(['todo', 'in_progress'] as TodoStatus[]).map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => changeStatus(todo.id, s)}
-                        className={`flex-1 py-1 rounded-lg text-[11px] font-medium transition-colors touch-manipulation ${
-                          todo.status === s
-                            ? 'bg-primary text-white'
-                            : 'bg-bg-subtle text-text-subtle'
-                        }`}
-                      >
-                        {STATUS_LABELS[s]}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
             ))}
           </div>
@@ -372,8 +413,8 @@ export default function ChecklistPage() {
             <div className="flex flex-col gap-3">
               <input
                 type="text"
-                value={form.content}
-                onChange={(e) => setForm({ ...form, content: e.target.value })}
+                value={addform.content}
+                onChange={(e) => setAddForm({ ...addform, content: e.target.value })}
                 placeholder="할 일 내용을 입력하세요"
                 autoFocus
                 className="input-field"
@@ -381,8 +422,8 @@ export default function ChecklistPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <select
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value as Category })}
+                  value={addform.category}
+                  onChange={(e) => setAddForm({ ...addform, category: e.target.value as Category })}
                   className="input-field text-sm"
                 >
                   {ALL_CATS.map((cat) => (
@@ -392,8 +433,8 @@ export default function ChecklistPage() {
                   ))}
                 </select>
                 <select
-                  value={form.priority}
-                  onChange={(e) => setForm({ ...form, priority: e.target.value as Priority })}
+                  value={addform.priority}
+                  onChange={(e) => setAddForm({ ...addform, priority: e.target.value as Priority })}
                   className="input-field text-sm"
                 >
                   <option value="high">🔴 높음</option>
@@ -406,8 +447,8 @@ export default function ChecklistPage() {
                 <label className="block text-xs text-text-subtle mb-1">마감일</label>
                 <input
                   type="date"
-                  value={form.dueDate}
-                  onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+                  value={addform.dueDate}
+                  onChange={(e) => setAddForm({ ...addform, dueDate: e.target.value })}
                   className="input-field"
                 />
               </div>
@@ -415,15 +456,131 @@ export default function ChecklistPage() {
               <div className="flex items-center justify-between py-1">
                 <span className="text-sm text-text-basic">알림</span>
                 <button
-                  onClick={() => setForm({ ...form, hasNotification: !form.hasNotification })}
-                  className={`toggle ${form.hasNotification ? 'bg-primary' : 'bg-border-default'}`}
+                  onClick={() => setAddForm({ ...addform, hasNotification: !addform.hasNotification })}
+                  className={`toggle ${addform.hasNotification ? 'bg-primary' : 'bg-border-default'}`}
                 >
-                  <div className={`toggle-knob ${form.hasNotification ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                  <div className={`toggle-knob ${addform.hasNotification ? 'translate-x-6' : 'translate-x-0.5'}`} />
                 </button>
               </div>
 
-              <button onClick={handleAdd} disabled={!form.content.trim()} className="btn-primary">
+              <button onClick={handleAdd} disabled={!addform.content.trim()} className="btn-primary">
                 추가하기
+              </button>
+            </div>
+          </div>
+        </div>
+        
+      )}
+      {showEdit && editingTodo && (
+        <div className="fixed inset-0 z-50 flex items-end">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => {
+              setShowEdit(false);
+              setEditingTodo(null);
+            }}
+          />
+
+          <div className="relative w-full max-w-[480px] mx-auto bg-white rounded-t-2xl px-5 pt-5 pb-8 animate-slide-up">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-text-basic">할 일 수정</h3>
+              <button
+                onClick={() => {
+                  setShowEdit(false);
+                  setEditingTodo(null);
+                }}
+              >
+                <X size={20} className="text-text-disabled" />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <input
+                type="text"
+                value={editForm.content}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, content: e.target.value })
+                }
+                placeholder="할 일 내용을 수정하세요"
+                autoFocus
+                className="input-field"
+              />
+
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={editForm.category}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      category: e.target.value as Category,
+                    })
+                  }
+                  className="input-field text-sm"
+                >
+                  {ALL_CATS.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {CATEGORY_ICONS[cat]} {CATEGORY_LABELS[cat]}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={editForm.priority}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      priority: e.target.value as Priority,
+                    })
+                  }
+                  className="input-field text-sm"
+                >
+                  <option value="high">🔴 높음</option>
+                  <option value="medium">🟡 보통</option>
+                  <option value="low">⚪ 낮음</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-text-subtle mb-1">
+                  마감일
+                </label>
+                <input
+                  type="date"
+                  value={editForm.dueDate}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, dueDate: e.target.value })
+                  }
+                  className="input-field"
+                />
+              </div>
+
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-text-basic">알림</span>
+                <button
+                  onClick={() =>
+                    setEditForm({
+                      ...editForm,
+                      hasNotification: !editForm.hasNotification,
+                    })
+                  }
+                  className={`toggle ${editForm.hasNotification ? "bg-primary" : "bg-border-default"}`}
+                >
+                  <div
+                    className={`toggle-knob ${
+                      editForm.hasNotification
+                        ? "translate-x-6"
+                        : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <button
+                onClick={handleEditSave}
+                disabled={!editForm.content.trim()}
+                className="btn-primary"
+              >
+                수정 완료
               </button>
             </div>
           </div>
