@@ -15,7 +15,7 @@ export type InterestKeyword =
   | 'social_connection'
 
 export type Role = 'mentee' | 'mentor'
-export type TodoStatus = 'todo' | 'in_progress' | 'done'
+export type TodoStatus = 'todo' | 'done'
 export type Priority = 'high' | 'medium' | 'low'
 
 export interface User {
@@ -192,9 +192,8 @@ export const CATEGORY_ICONS: Record<Category, string> = {
 }
 
 export const STATUS_LABELS: Record<TodoStatus, string> = {
-  todo:        '미완료',
-  in_progress: '진행 중',
-  done:        '완료',
+  todo: '미완료',
+  done: '완료',
 }
 
 export const PRIORITY_LABELS: Record<Priority, string> = {

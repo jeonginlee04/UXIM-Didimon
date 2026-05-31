@@ -88,13 +88,8 @@ export const useTodoStore = create<TodoState>()(
         const doneCount = targetTodos.filter(
           (todo) => todo.status === "done",
         ).length;
-        const inProgressCount = targetTodos.filter(
-          (todo) => todo.status === "in_progress",
-        ).length;
 
-        return Math.round(
-          ((doneCount + inProgressCount * 0.5) / targetTodos.length) * 100,
-        );
+        return Math.round((doneCount / targetTodos.length) * 100);
       },
     }),
     {

@@ -213,7 +213,6 @@ export default function ChecklistPage() {
 
   const statusColors: Record<TodoStatus, string> = {
     todo: "bg-bg-subtle text-text-subtle",
-    in_progress: "bg-primary-light text-primary",
     done: "bg-success-light text-success-text",
   };
 
@@ -337,7 +336,7 @@ export default function ChecklistPage() {
         )}
 
         <div className="flex gap-2 mb-3 overflow-x-auto scrollbar-hide">
-          {(["all", "todo", "in_progress", "done"] as const).map((s) => (
+          {(["all", "todo", "done"] as const).map((s) => (
             <button
               key={s}
               onClick={() => setFilterStatus(s)}
