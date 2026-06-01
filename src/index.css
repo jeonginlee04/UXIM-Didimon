@@ -12,8 +12,8 @@
 
   body {
     font-size: 14px;
-    color: #1C1C1E;
-    background-color: #F5F6F7;
+    color: #1f2024;
+    background-color: #f8f9fe;
     margin: 0;
     padding: 0;
     overscroll-behavior: none;
@@ -48,14 +48,14 @@
 
   /* ── Buttons ── */
   .btn-primary {
-    @apply inline-flex items-center justify-center w-full h-14 px-6
-           bg-primary text-white text-sm font-bold rounded-2xl
+    @apply inline-flex items-center justify-center w-full h-12 px-6
+           bg-primary text-white text-sm font-semibold rounded-xl
            transition-all duration-150 touch-manipulation select-none
            disabled:bg-[#C7D6CF] disabled:text-white disabled:cursor-not-allowed
            active:scale-[0.98];
   }
   .btn-primary:not(:disabled):hover {
-    background-color: #3E9069;
+    background-color: #4d9a8c;
   }
 
   .btn-secondary {
@@ -113,11 +113,11 @@
 
   /* 공지/검색 카드 - 이미지 썸네일 + 텍스트 (2열 그리드용) */
   .ann-card {
-    @apply bg-white rounded-2xl overflow-hidden shadow-sm
+    @apply bg-[#f8f9fe] rounded-2xl overflow-hidden
            active:opacity-90 touch-manipulation;
   }
   .ann-card-thumb {
-    @apply w-full aspect-[4/3] bg-primary-lighter flex items-center justify-center;
+    @apply w-full aspect-[4/3] bg-[#e0efec] flex items-center justify-center;
   }
 
   /* 로드맵 카테고리 카드 - 파스텔 배경, 그림자 */
@@ -144,8 +144,8 @@
 
   /* 필터/스크랩 pill 버튼 (검색 화면) */
   .filter-pill {
-    @apply inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-xs font-semibold
-           border border-border-light bg-white text-text-subtle
+    @apply inline-flex items-center gap-1.5 h-9 px-4 rounded-xl text-xs font-semibold
+           border border-[#c5c6cc] bg-white text-text-subtle
            transition-colors touch-manipulation select-none;
   }
   .filter-pill.active {
@@ -245,7 +245,7 @@
 /* ─── Responsive ────────────────────────────────────────────────────────────── */
 @media (min-width: 640px) {
   body {
-    background-color: #E5E7EB;
+    background-color: #e8e9f1;
   }
   #root {
     border-radius: 24px;

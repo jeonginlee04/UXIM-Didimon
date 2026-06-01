@@ -2,9 +2,12 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { mockAnnouncements } from "../data/mockData";
 import type { Announcement, Category } from "../types";
+import { fetchAllAnnouncements } from "../services/announcementApi";
 
 interface AnnouncementState {
   announcements: Announcement[];
+  isLoading: boolean;
+  error: string | null;
   searchQuery: string;
   filterCategory: Category | "all";
   filterDeadlines: string[];
@@ -12,6 +15,7 @@ interface AnnouncementState {
   filterBenefits: string[];
   filterEligibility: string[];
   sortBy: "popular" | "latest" | "deadline" | "recommended";
+  fetchAnnouncements: () => Promise<void>;
   setSearchQuery: (q: string) => void;
   setFilterCategory: (c: Category | "all") => void;
   setFilterDeadlines: (v: string[]) => void;
@@ -30,6 +34,8 @@ export const useAnnouncementStore = create<AnnouncementState>()(
   persist(
     (set, get) => ({
       announcements: mockAnnouncements,
+      isLoading: false,
+      error: null,
       searchQuery: "",
       filterCategory: "all",
       filterDeadlines: [],
@@ -37,6 +43,29 @@ export const useAnnouncementStore = create<AnnouncementState>()(
       filterBenefits: [],
       filterEligibility: [],
       sortBy: "popular",
+
+      fetchAnnouncements: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          const fetched = await fetchAllAnnouncements();
+          if (fetched.length > 0) {
+            // Preserve bookmark state for IDs that already exist in the store
+            const existing = get().announcements;
+            const bookmarkMap = new Map(
+              existing.map((a) => [a.id, a.isBookmarked]),
+            );
+            const merged = fetched.map((a) => ({
+              ...a,
+              isBookmarked: bookmarkMap.get(a.id) ?? false,
+            }));
+            set({ announcements: merged, isLoading: false });
+          } else {
+            set({ isLoading: false });
+          }
+        } catch {
+          set({ isLoading: false, error: "데이터를 불러오지 못했어요." });
+        }
+      },
 
       setSearchQuery: (q) => set({ searchQuery: q }),
       setFilterCategory: (c) => set({ filterCategory: c }),
@@ -126,9 +155,15 @@ export const useAnnouncementStore = create<AnnouncementState>()(
         }
 
         if (filterBenefits.length > 0) {
-          result = result.filter((a) =>
-            filterBenefits.some((b) => a.benefitType.includes(b)),
-          );
+          result = result.filter((a) => {
+            const terms = [a.benefitType, ...a.tags].map((s) =>
+              s.replace(/\s+/g, '').toLowerCase(),
+            );
+            return filterBenefits.some((b) => {
+              const key = b.replace(/\s+/g, '').toLowerCase();
+              return terms.some((t) => t.includes(key) || key.includes(t));
+            });
+          });
         }
 
         if (filterEligibility.length > 0) {
@@ -176,6 +211,18 @@ export const useAnnouncementStore = create<AnnouncementState>()(
 
       getBookmarked: () => get().announcements.filter((a) => a.isBookmarked),
     }),
-    { name: "didim-announcements" },
+    {
+      name: "didim-announcements",
+      partialize: (state) => ({
+        announcements: state.announcements,
+        searchQuery: state.searchQuery,
+        filterCategory: state.filterCategory,
+        filterDeadlines: state.filterDeadlines,
+        filterRegions: state.filterRegions,
+        filterBenefits: state.filterBenefits,
+        filterEligibility: state.filterEligibility,
+        sortBy: state.sortBy,
+      }),
+    },
   ),
 );

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { User, InterestKeyword, NotificationSettings } from '../types'
+import { getLevel } from '../types'
 
 interface AuthState {
   user: User | null
@@ -35,7 +36,8 @@ export const useAuthStore = create<AuthState>()(
         set((state) => {
           if (!state.user) return state
           const newExp = state.user.exp + amount
-          return { user: { ...state.user, exp: newExp } }
+          const newLevel = getLevel(newExp)
+          return { user: { ...state.user, exp: newExp, level: newLevel } }
         }),
     }),
     { name: 'didim-auth' }

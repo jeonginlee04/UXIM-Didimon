@@ -17,8 +17,11 @@ import type { RoadmapCategory } from '../types'
 
 const ROADMAP_CATS: RoadmapCategory[] = ['finance', 'housing', 'employment', 'education']
 
-const CAT_EMOJI: Record<string, string> = {
-  finance: '💰', housing: '🏠', employment: '💼', education: '📚', culture: '🎨',
+const STATUS_LABEL: Record<string, string> = {
+  finance: '주의 필요',
+  housing: '안정 상태',
+  employment: '진행중',
+  education: '진행중',
 }
 
 export default function RoadmapPage() {
@@ -31,122 +34,50 @@ export default function RoadmapPage() {
   const level = user?.level ?? 1
   const exp = user?.exp ?? 0
   const levelProgress = getLevelProgress(exp)
-  const completedQuests = dailyQuests.filter((q) => q.isCompleted).length
-  const totalQuests = dailyQuests.length
+  const expPercent = Math.round((levelProgress / EXP_PER_LEVEL) * 100)
 
   const latestAnn = [...announcements]
     .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
-    .slice(0, 2)
+    .slice(0, 1)[0]
+
+  const completedQuests = dailyQuests.filter((q) => q.isCompleted).length
+  const totalQuests = dailyQuests.length
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg-page pb-20">
-      {/* Header */}
-      <div className="bg-white border-b border-border-light px-5 pt-5 pb-4">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-base font-bold text-text-basic">
-              {user?.nickname ?? user?.name ?? ''}님의 자립 로드맵
-            </h1>
-            <p className="text-xs text-text-subtle mt-0.5">오늘도 한 걸음씩 나아가요</p>
-          </div>
-          <img src={pet2} alt="" className="w-12 h-12 object-contain flex-shrink-0" />
-        </div>
+    <div className="min-h-screen flex flex-col bg-white pb-20">
+      {/* 상태바 / 상단 여백 */}
+      <div className="h-11 bg-white" />
 
-        {/* Level EXP bar */}
-        <div className="bg-primary-light rounded-xl px-4 py-3">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-primary bg-primary/20 px-2 py-0.5 rounded-full">
-                Lv.{level}
-              </span>
-              <span className="text-xs text-primary font-medium">
-                {user?.nickname ?? user?.name}
-              </span>
-            </div>
-            <span className="text-xs text-primary font-bold">
-              {levelProgress} / {EXP_PER_LEVEL} EXP
-            </span>
-          </div>
-          <div className="h-2.5 bg-primary/20 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary rounded-full transition-all duration-700"
-              style={{ width: `${(levelProgress / EXP_PER_LEVEL) * 100}%` }}
-            />
-          </div>
-        </div>
-      </div>
-
-      <main className="flex-1 px-4 py-4 flex flex-col gap-4">
-        {/* 공지사항 */}
-        {latestAnn.length > 0 && (
-          <div className="bg-white rounded-xl border border-border-light overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-2 border-b border-border-light bg-primary/5">
-              <span className="text-xs font-bold text-primary">📢 최신 공고</span>
-            </div>
-            {latestAnn.map((ann) => (
-              <button
-                key={ann.id}
-                onClick={() => navigate(`/search/${ann.id}`)}
-                className="w-full flex items-center gap-3 px-4 py-3 text-left active:bg-bg-subtle touch-manipulation border-b border-border-light last:border-0"
-              >
-                <span className="text-base">{CAT_EMOJI[ann.category]}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-text-basic truncate">{ann.title}</p>
-                  <p className="text-[10px] text-text-subtle mt-0.5">{ann.organization}</p>
-                </div>
-                <span className="text-text-disabled">›</span>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Daily quest */}
-        <button
-          onClick={() => navigate('/roadmap/quest')}
-          className="bg-white rounded-xl border border-border-light p-4 text-left active:bg-bg-subtle touch-manipulation"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">⚡</span>
-              <span className="text-sm font-bold text-text-basic">이번 주 퀘스트</span>
-            </div>
-            <span className="text-xs font-bold text-primary">
-              {completedQuests}/{totalQuests}
-            </span>
-          </div>
-          <div className="h-1.5 bg-bg-subtle rounded-full overflow-hidden mb-2">
-            <div
-              className="h-full bg-warning rounded-full transition-all"
-              style={{ width: `${totalQuests > 0 ? (completedQuests / totalQuests) * 100 : 0}%` }}
-            />
-          </div>
-          <p className="text-xs text-text-subtle">
-            {completedQuests === totalQuests
-              ? '모든 퀘스트를 완료했어요! 🎉'
-              : `${totalQuests - completedQuests}개 퀘스트가 남아있어요`}
-          </p>
-        </button>
-
-        {/* Weekly check */}
-        {canDoWeeklyCheck() && (
-          <button
-            onClick={() => navigate('/roadmap/weekly-check')}
-            className="bg-primary text-white rounded-xl p-4 text-left active:bg-primary-pressed touch-manipulation"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">📝</span>
-              <div className="flex-1">
-                <p className="text-sm font-bold">이번 주 점검하기</p>
-                <p className="text-xs text-primary-light mt-0.5">한 주의 자립 여정을 돌아보세요</p>
+      {/* 공지사항 배너 */}
+      {latestAnn && (
+        <div className="mx-4 mb-3">
+          <div className="bg-white border border-[#ff9277] rounded-2xl shadow-sm overflow-hidden">
+            <div className="flex items-center px-5 py-4 gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-[14px] font-bold text-[#1f2024] mb-0.5">공지사항</p>
+                <p className="text-[12px] text-[#494a50] truncate">
+                  {latestAnn.title}
+                </p>
               </div>
-              <span className="text-xl opacity-80">›</span>
+              <button
+                onClick={() => navigate(`/search/${latestAnn.id}`)}
+                className="flex-shrink-0 text-[#ff9277] touch-manipulation"
+                aria-label="닫기"
+              >
+                ✕
+              </button>
             </div>
-          </button>
-        )}
+          </div>
+        </div>
+      )}
 
-        {/* 2×2 Category cards */}
+      {/* 구분선 */}
+      <div className="h-px bg-[#e8e9f1] mx-4 mb-4" />
+
+      <main className="flex-1 px-4 flex flex-col gap-5">
+        {/* 분야별 현황 */}
         <div>
-          <h2 className="text-sm font-bold text-text-basic mb-3">카테고리별 진행 현황</h2>
+          <h2 className="text-[14px] font-bold text-[#1f2024] mb-3">분야별 현황</h2>
           <div className="grid grid-cols-2 gap-3">
             {ROADMAP_CATS.map((cat) => {
               const { completed, total } = getCategoryProgress(cat)
@@ -158,24 +89,19 @@ export default function RoadmapPage() {
                 <button
                   key={cat}
                   onClick={() => navigate(`/roadmap/category/${cat}`)}
-                  className="bg-white rounded-xl border border-border-light p-4 text-left active:bg-bg-subtle touch-manipulation"
+                  className="rounded-2xl p-4 text-left active:opacity-80 touch-manipulation"
+                  style={{ backgroundColor: bg }}
                 >
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-3"
-                    style={{ backgroundColor: bg }}
-                  >
-                    {ROADMAP_CATEGORY_ICONS[cat]}
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[14px] font-bold text-[#1f2024]">
+                      {ROADMAP_CATEGORY_LABELS[cat]}
+                    </p>
+                    <span className="text-xl">{ROADMAP_CATEGORY_ICONS[cat]}</span>
                   </div>
-                  <p className="text-sm font-bold text-text-basic mb-1">
-                    {ROADMAP_CATEGORY_LABELS[cat]}
+                  <p className="text-[12px] mb-2" style={{ color }}>
+                    {STATUS_LABEL[cat] ?? `${completed}/${total} 단계`}
                   </p>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] text-text-subtle">{completed}/{total} 단계</span>
-                    <span className="text-[10px] font-bold" style={{ color }}>
-                      {todoPct}%
-                    </span>
-                  </div>
-                  <div className="h-1.5 bg-bg-subtle rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-black/10 rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{ width: `${todoPct}%`, backgroundColor: color }}
@@ -187,11 +113,80 @@ export default function RoadmapPage() {
           </div>
         </div>
 
-        {/* Turtle tip */}
+        {/* 오늘의 퀘스트 미리보기 */}
+        <button
+          onClick={() => navigate('/roadmap/quest')}
+          className="bg-white border border-[#c5c6cc] rounded-2xl p-5 text-left active:bg-[#f8f9fe] touch-manipulation shadow-sm"
+        >
+          <h3 className="text-[12px] font-bold text-[#1f2024] mb-2">
+            오늘의 퀘스트를 확인해볼까요?
+          </h3>
+          <ul className="text-[10px] text-[#494a50] space-y-1 list-disc pl-3.5 mb-3">
+            {dailyQuests.slice(0, 2).map((q) => (
+              <li key={q.id}>{q.title}</li>
+            ))}
+            {dailyQuests.length === 0 && (
+              <>
+                <li>공고 하나 이상 스크랩하기</li>
+                <li>금융 분야 투두 추가</li>
+              </>
+            )}
+          </ul>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] text-[#71727a]">
+              {completedQuests}/{totalQuests || 2}개 완료
+            </p>
+            <span className="bg-[#62ad9e] text-white text-[10px] font-semibold px-3 py-1 rounded-full">
+              더보기
+            </span>
+          </div>
+        </button>
+
+        {/* 주간 점검 버튼 */}
+        {canDoWeeklyCheck() && (
+          <button
+            onClick={() => navigate('/roadmap/weekly-check')}
+            className="bg-[#62ad9e] text-white rounded-2xl p-4 text-left active:opacity-90 touch-manipulation"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">📝</span>
+              <div className="flex-1">
+                <p className="text-sm font-bold">이번 주 점검하기</p>
+                <p className="text-xs text-white/80 mt-0.5">한 주의 자립 여정을 돌아보세요</p>
+              </div>
+              <span className="text-xl opacity-80">›</span>
+            </div>
+          </button>
+        )}
+
+        {/* 레벨/진행률 + 거북이 */}
         <div className="flex items-end gap-3 pb-2">
-          <img src={pet2} alt="" className="w-14 h-14 object-contain flex-shrink-0" />
-          <div className="bg-white rounded-2xl rounded-bl-none px-4 py-3 border border-border-light flex-1 shadow-sm">
-            <p className="text-xs text-text-subtle leading-relaxed">
+          <img src={pet2} alt="" className="w-20 h-20 object-contain flex-shrink-0" />
+          <div className="flex-1 pb-1">
+            <div className="flex items-end justify-between mb-1">
+              <span className="text-[12px] text-[#494a50]">안정 준비 단계</span>
+              <span className="text-[14px] font-bold text-[#1f2024]">Lv.{level}</span>
+            </div>
+            <p className="text-[24px] font-bold text-[#1f2024] leading-none mb-2">
+              {expPercent}%
+            </p>
+            {/* 그라디언트 프로그레스 바 */}
+            <div className="h-[21px] bg-[#e8e9f1] rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: `${expPercent}%`,
+                  background: 'linear-gradient(to right, #284741, #62ad9e)',
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 거북이 말풍선 */}
+        <div className="flex items-end gap-3 pb-2">
+          <div className="bg-white rounded-2xl rounded-bl-none px-4 py-3 border border-[#c5c6cc] flex-1 shadow-sm">
+            <p className="text-xs text-[#71727a] leading-relaxed">
               꾸준히 하는 것이 가장 중요해요.
               <br />오늘도 작은 한 걸음 내딛어봐요!
             </p>

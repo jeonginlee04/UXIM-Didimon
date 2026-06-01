@@ -1,23 +1,13 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, SlidersHorizontal, Bookmark } from "lucide-react";
 import BottomNav from "../components/common/BottomNav";
+import LoadingSpinner from "../components/common/LoadingSpinner";
+import ScrapModal from "../components/ScrapModal";
 import { useAnnouncementStore } from "../store/announcementStore";
+import { getDDay, formatDateRange } from "../utils/dateUtils";
 import { CATEGORY_LABELS, CATEGORY_COLORS, CATEGORY_BG } from "../types";
 
-function getDDay(endDate: string) {
-  const diff = Math.ceil((new Date(endDate).getTime() - Date.now()) / 86400000);
-  if (diff < 0) return { label: "마감", cls: "text-text-disabled" };
-  if (diff <= 7) return { label: `D-${diff}`, cls: "text-danger font-bold" };
-  return { label: `D-${diff}`, cls: "text-text-subtle" };
-}
-
-const THUMB_BG: Record<string, string> = {
-  finance: "#D6EDE3",
-  housing: "#D6EDE3",
-  employment: "#D6EDE3",
-  education: "#D6EDE3",
-  culture: "#D6EDE3",
-};
 const THUMB_ICON: Record<string, string> = {
   finance: "💰",
   housing: "🏠",
@@ -28,15 +18,22 @@ const THUMB_ICON: Record<string, string> = {
 
 export default function SearchPage() {
   const navigate = useNavigate();
+  const [scrapOpen, setScrapOpen] = useState(false);
   const {
     announcements,
+    isLoading,
+    error,
     searchQuery,
     setSearchQuery,
-    setSortBy,
     toggleBookmark,
     getFiltered,
     getTotalFilterCount,
+    fetchAnnouncements,
   } = useAnnouncementStore();
+
+  useEffect(() => {
+    fetchAnnouncements();
+  }, []);
 
   const filtered = getFiltered();
   const bookmarkedCount = announcements.filter((a) => a.isBookmarked).length;
@@ -46,19 +43,19 @@ export default function SearchPage() {
     <div className="min-h-screen flex flex-col bg-white pb-20">
       {/* 검색 바 */}
       <div className="px-4 pt-5 pb-3 bg-white sticky top-0 z-30">
-        <div className="flex items-center gap-2 h-12 bg-[#F2F4F6] rounded-full px-4">
-          <Search size={16} className="text-text-disabled flex-shrink-0" />
+        <div className="flex items-center gap-2 h-12 bg-[#f8f9fe] rounded-3xl px-4">
+          <Search size={16} className="text-[#8f9098] flex-shrink-0" />
           <input
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="검색어"
-            className="flex-1 bg-transparent text-sm text-text-basic placeholder:text-text-disabled focus:outline-none"
+            className="flex-1 bg-transparent text-sm text-[#1f2024] placeholder:text-[#8f9098] focus:outline-none"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="text-text-disabled text-sm leading-none touch-manipulation"
+              className="text-[#8f9098] text-sm leading-none touch-manipulation"
             >
               ✕
             </button>
@@ -71,7 +68,7 @@ export default function SearchPage() {
             onClick={() => navigate("/search/filter")}
             className={`filter-pill ${totalFilterCount > 0 ? "active" : ""}`}
           >
-            <SlidersHorizontal size={13} />
+            <SlidersHorizontal size={12} />
             필터
             {totalFilterCount > 0 && (
               <span className="w-5 h-5 bg-primary text-white rounded-full text-[10px] font-bold flex items-center justify-center">
@@ -80,10 +77,19 @@ export default function SearchPage() {
             )}
           </button>
 
-          <button onClick={() => setSortBy("popular")} className="filter-pill">
-            <span className="w-5 h-5 bg-primary text-white rounded-full text-[10px] font-bold flex items-center justify-center">
-              {bookmarkedCount}
-            </span>
+          <button
+            onClick={() => setScrapOpen(true)}
+            className={`filter-pill ${bookmarkedCount > 0 ? "active" : ""}`}
+          >
+            {bookmarkedCount > 0 && (
+              <span className="w-5 h-5 bg-primary text-white rounded-full text-[10px] font-bold flex items-center justify-center">
+                {bookmarkedCount}
+              </span>
+            )}
+            <Bookmark
+              size={12}
+              fill={bookmarkedCount > 0 ? "currentColor" : "none"}
+            />
             스크랩
           </button>
         </div>
@@ -91,6 +97,18 @@ export default function SearchPage() {
 
       {/* 카드 그리드 */}
       <main className="flex-1 px-4 py-1">
+        {isLoading && (
+          <div className="flex items-center gap-2 py-2 mb-1">
+            <LoadingSpinner size={16} />
+            <p className="text-xs text-text-subtle">최신 공고를 불러오는 중...</p>
+          </div>
+        )}
+        {!isLoading && error && (
+          <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-2 text-xs text-amber-700">
+            <span>⚠️</span>
+            <span>서버 연결 실패 — 저장된 공고를 표시해요.</span>
+          </div>
+        )}
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-3">
             <span className="text-5xl">🔍</span>
@@ -103,8 +121,14 @@ export default function SearchPage() {
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {filtered.map((ann) => {
-              const { label: dday, cls: ddayCls } = getDDay(ann.endDate);
+              const { label: dday, urgent, expired } = getDDay(ann.endDate);
+              const ddayCls = expired
+                ? "text-[#8f9098]"
+                : urgent
+                ? "text-red-500 font-bold"
+                : "text-[#71727a]";
               const catColor = CATEGORY_COLORS[ann.category];
+              const catBg = CATEGORY_BG[ann.category];
 
               return (
                 <div
@@ -112,11 +136,12 @@ export default function SearchPage() {
                   className="ann-card"
                   onClick={() => navigate(`/search/${ann.id}`)}
                 >
+                  {/* 썸네일 */}
                   <div
-                    className="ann-card-thumb relative"
-                    style={{ backgroundColor: THUMB_BG[ann.category] }}
+                    className="relative w-full aspect-[4/3] flex items-center justify-center"
+                    style={{ backgroundColor: catBg }}
                   >
-                    <span className="text-4xl opacity-40">
+                    <span className="text-4xl opacity-50">
                       {THUMB_ICON[ann.category]}
                     </span>
                     <button
@@ -129,41 +154,34 @@ export default function SearchPage() {
                       <Bookmark
                         size={14}
                         className={
-                          ann.isBookmarked
-                            ? "text-primary"
-                            : "text-text-disabled"
+                          ann.isBookmarked ? "text-primary" : "text-[#8f9098]"
                         }
                         fill={ann.isBookmarked ? "currentColor" : "none"}
                       />
                     </button>
                   </div>
 
+                  {/* 텍스트 */}
                   <div className="px-3 py-2.5">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] text-text-disabled">
-                        {ann.startDate.slice(5).replace("-", ".")} -{" "}
-                        {ann.endDate.slice(5).replace("-", ".")}
-                      </span>
-                      <span className={`text-[10px] ${ddayCls}`}>{dday}</span>
-                    </div>
-                    <p className="text-xs font-bold text-text-basic leading-snug line-clamp-2">
+                    <p className="text-[11px] text-[#71727a] mb-1 truncate">
+                      {formatDateRange(ann.startDate, ann.endDate)}
+                    </p>
+                    <p className="text-[13px] font-bold text-[#1f2024] leading-snug line-clamp-2 mb-2">
                       {ann.title}
                     </p>
-                    <div className="mt-1.5 flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-1 min-w-0">
                       <span
-                        className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0"
                         style={{
                           color: catColor,
-                          backgroundColor: CATEGORY_BG[ann.category],
+                          backgroundColor: catBg,
                         }}
                       >
                         {CATEGORY_LABELS[ann.category]}
                       </span>
-                      {ann.amount && (
-                        <span className="text-[10px] text-primary font-semibold">
-                          {ann.amount}
-                        </span>
-                      )}
+                      <span className={`text-[10px] flex-shrink-0 ${ddayCls}`}>
+                        {dday}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -174,6 +192,8 @@ export default function SearchPage() {
       </main>
 
       <BottomNav />
+
+      <ScrapModal isOpen={scrapOpen} onClose={() => setScrapOpen(false)} />
     </div>
   );
 }

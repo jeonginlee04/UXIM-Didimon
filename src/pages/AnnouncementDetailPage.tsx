@@ -1,15 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { Bookmark, ExternalLink, Users, Calendar, MapPin, Tag, ChevronLeft } from 'lucide-react'
-import Header from '../components/common/Header'
+import { Bookmark, ExternalLink, ChevronLeft } from 'lucide-react'
 import CategoryBadge from '../components/common/CategoryBadge'
 import { useAnnouncementStore } from '../store/announcementStore'
 import { useTodoStore } from '../store/todoStore'
+import { getDDay, formatDateRange } from '../utils/dateUtils'
 import pet1 from '../assets/pet1.png'
+import { CATEGORY_BG } from '../types'
 
-const THUMB_BG: Record<string, string> = {
-  finance: '#D6EDE3', housing: '#D6EDE3', employment: '#D6EDE3',
-  education: '#D6EDE3', culture: '#D6EDE3',
-}
 const THUMB_ICON: Record<string, string> = {
   finance: '💰', housing: '🏠', employment: '💼', education: '📚', culture: '🎨',
 }
@@ -24,20 +21,17 @@ export default function AnnouncementDetailPage() {
   if (!ann) {
     return (
       <div className="min-h-screen flex flex-col bg-white">
-        <Header title="공고 상세" showBack />
+        <div className="flex items-center h-14 px-4 border-b border-[#c5c6cc]">
+          <button onClick={() => navigate(-1)} className="p-1.5 -ml-1 touch-manipulation">
+            <ChevronLeft size={22} className="text-[#1f2024]" />
+          </button>
+          <h1 className="flex-1 text-sm font-bold text-[#1f2024]">공고 상세</h1>
+        </div>
         <div className="flex-1 flex items-center justify-center">
-          <p className="text-text-subtle text-sm">공고를 찾을 수 없어요.</p>
+          <p className="text-sm text-[#71727a]">공고를 찾을 수 없어요.</p>
         </div>
       </div>
     )
-  }
-
-  const getDDay = (endDate: string) => {
-    const diff = Math.ceil((new Date(endDate).getTime() - Date.now()) / 86400000)
-    if (diff < 0) return { label: '마감', urgent: false, expired: true }
-    if (diff === 0) return { label: 'D-Day', urgent: true, expired: false }
-    if (diff <= 7) return { label: `D-${diff}`, urgent: true, expired: false }
-    return { label: `D-${diff}`, urgent: false, expired: false }
   }
 
   const handleBookmark = () => toggleBookmark(ann.id)
@@ -56,133 +50,167 @@ export default function AnnouncementDetailPage() {
   }
 
   const { label: dday, urgent, expired } = getDDay(ann.endDate)
+  const thumbBg = CATEGORY_BG[ann.category]
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg-page">
-      <Header
-        title="공고 상세"
-        showBack
-        rightElement={
-          <button onClick={handleBookmark} className="p-1.5 -mr-1 touch-manipulation">
-            <Bookmark
-              size={20}
-              className={ann.isBookmarked ? 'text-primary' : 'text-text-subtle'}
-              fill={ann.isBookmarked ? 'currentColor' : 'none'}
-            />
-          </button>
-        }
-      />
+    <div className="min-h-screen flex flex-col bg-white">
+      {/* Hero 이미지 영역 */}
+      <div
+        className="relative w-full flex-shrink-0 flex items-center justify-center"
+        style={{ height: '253px', backgroundColor: thumbBg }}
+      >
+        <span className="text-[88px] opacity-30">{THUMB_ICON[ann.category]}</span>
 
-      <main className="flex-1 pb-28 overflow-y-auto">
-        {/* Poster Image */}
-        <div
-          className="relative w-full flex-shrink-0 flex items-center justify-center"
-          style={{ height: '253px', backgroundColor: THUMB_BG[ann.category] }}
+        {/* 뒤로가기 */}
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute left-4 top-6 w-8 h-8 flex items-center justify-center touch-manipulation"
         >
-          <span className="text-9xl opacity-30">{THUMB_ICON[ann.category]}</span>
+          <ChevronLeft size={22} className="text-[#62ad9e]" />
+        </button>
 
-          <button
-            onClick={() => navigate(-1)}
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/70 rounded-full flex items-center justify-center shadow-sm touch-manipulation"
-          >
-            <ChevronLeft size={20} className="text-text-basic" />
-          </button>
-
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className={`rounded-full ${i === 1 ? 'w-4 h-1.5 bg-primary' : 'w-1.5 h-1.5 bg-white/60'}`}
-              />
-            ))}
-          </div>
+        {/* 페이지네이션 도트 */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className={`rounded-full transition-all ${
+                i === 1
+                  ? 'w-4 h-2 bg-[#62ad9e]'
+                  : 'w-2 h-2 bg-black/10'
+              }`}
+            />
+          ))}
         </div>
+      </div>
 
-        {/* Hero card */}
-        <div className="bg-white px-5 py-5 mb-2">
-          <div className="flex items-start justify-between mb-3">
-            <CategoryBadge category={ann.category} />
-            <span className={`text-xs font-bold px-2 py-0.5 rounded ${
-              expired ? 'text-text-disabled bg-bg-subtle' :
-              urgent ? 'text-danger bg-danger-light' :
-              'text-text-subtle bg-bg-subtle'
+      <main className="flex-1 pb-28 overflow-y-auto bg-white">
+        {/* 제목 섹션 */}
+        <div className="px-6 pt-6 pb-5">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-[18px] font-extrabold text-[#1f2024] leading-snug mb-1">
+                {ann.title}
+              </h1>
+              <p className="text-base text-[#71727a]">{ann.organization}</p>
+            </div>
+            <span className={`flex-shrink-0 text-xs font-bold px-2.5 py-1 rounded-full mt-1 ${
+              expired ? 'text-[#8f9098] bg-[#f8f9fe]' :
+              urgent ? 'text-red-500 bg-red-50' :
+              'text-[#71727a] bg-[#f8f9fe]'
             }`}>
               {dday}
             </span>
           </div>
-          <h1 className="text-lg font-black text-text-basic mb-1 leading-snug">{ann.title}</h1>
-          <p className="text-sm text-text-subtle mb-4">{ann.organization}</p>
+          <CategoryBadge category={ann.category} />
+        </div>
 
-          <div className="flex flex-wrap gap-2">
-            {ann.amount && (
-              <div className="flex items-center gap-1.5 bg-primary-light text-primary rounded-lg px-3 py-1.5 text-xs font-semibold">
-                💰 {ann.amount}
-              </div>
+        {/* 구분선 */}
+        <div className="h-px bg-[#e8e9f1] mx-4" />
+
+        {/* 기본 정보 불릿 리스트 */}
+        <div className="px-6 py-5">
+          <ul className="space-y-2 text-sm text-[#71727a] list-disc pl-4">
+            <li>
+              <span className="leading-5">신청 기간: {formatDateRange(ann.startDate, ann.endDate)}</span>
+            </li>
+            {ann.organization && (
+              <li>
+                <span className="leading-5">기관: {ann.organization}</span>
+              </li>
+            )}
+            {ann.region && (
+              <li>
+                <span className="leading-5">지역: {ann.region}</span>
+              </li>
             )}
             {ann.targetAge && (
-              <div className="flex items-center gap-1.5 bg-bg-subtle text-text-subtle rounded-lg px-3 py-1.5 text-xs font-semibold">
-                <Users size={11} /> {ann.targetAge}
-              </div>
+              <li>
+                <span className="leading-5">대상: {ann.targetAge}</span>
+              </li>
             )}
-            <div className="flex items-center gap-1.5 bg-bg-subtle text-text-subtle rounded-lg px-3 py-1.5 text-xs font-semibold">
-              <MapPin size={11} /> {ann.region}
-            </div>
-            <div className="flex items-center gap-1.5 bg-bg-subtle text-text-subtle rounded-lg px-3 py-1.5 text-xs font-semibold">
-              <Tag size={11} /> {ann.benefitType}
-            </div>
-          </div>
+            {ann.amount && (
+              <li>
+                <span className="leading-5">지원 혜택: {ann.amount}</span>
+              </li>
+            )}
+            {ann.benefitType && (
+              <li>
+                <span className="leading-5">분야: {ann.benefitType}</span>
+              </li>
+            )}
+            {ann.detailUrl && (
+              <li>
+                <span className="leading-5">
+                  참고 링크:{' '}
+                  <a
+                    href={ann.detailUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary underline"
+                  >
+                    {ann.detailUrl.replace(/^https?:\/\//, '')}
+                  </a>
+                </span>
+              </li>
+            )}
+          </ul>
         </div>
 
-        {/* Period */}
-        <div className="bg-white px-5 py-4 mb-2">
-          <h3 className="text-xs font-bold text-text-subtle uppercase mb-3">신청 기간</h3>
-          <div className="flex items-center gap-2 text-sm text-text-basic">
-            <Calendar size={15} className="text-primary flex-shrink-0" />
-            {ann.startDate} ~ {ann.endDate}
-          </div>
-        </div>
+        {/* 구분선 */}
+        <div className="h-px bg-[#e8e9f1] mx-4" />
 
-        {/* Description */}
-        <div className="bg-white px-5 py-4 mb-2">
-          <h3 className="text-xs font-bold text-text-subtle uppercase mb-3">공고 내용</h3>
-          <p className="text-sm text-text-basic leading-relaxed whitespace-pre-line">
+        {/* 상세 설명 */}
+        <div className="px-6 py-5">
+          <h3 className="text-xs font-bold text-[#2f3036] mb-3">상세 설명</h3>
+          <p className="text-sm text-[#71727a] leading-relaxed whitespace-pre-line">
             {ann.description}
           </p>
         </div>
 
-        {/* Tags */}
-        <div className="bg-white px-5 py-4 mb-2">
-          <h3 className="text-xs font-bold text-text-subtle uppercase mb-3">관련 태그</h3>
-          <div className="flex flex-wrap gap-2">
-            {ann.tags.map((tag) => (
-              <span key={tag} className="text-xs bg-bg-subtle text-text-subtle px-2.5 py-1 rounded-full">
-                #{tag}
-              </span>
-            ))}
-          </div>
-        </div>
+        {/* 관련 태그 */}
+        {(ann.keyword || (ann.tags && ann.tags.length > 0)) && (
+          <>
+            <div className="h-px bg-[#e8e9f1] mx-4" />
+            <div className="px-6 py-4">
+              <h3 className="text-xs font-bold text-[#2f3036] mb-3">관련 태그</h3>
+              <div className="flex flex-wrap gap-2">
+                {ann.keyword && (
+                  <span className="text-xs bg-[#e0efec] text-[#3d8070] px-2.5 py-1 rounded-full font-semibold">
+                    #{ann.keyword}
+                  </span>
+                )}
+                {ann.tags.map((tag) => (
+                  <span key={tag} className="text-xs bg-[#f8f9fe] text-[#71727a] px-2.5 py-1 rounded-full">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
 
-        {/* Tip */}
-        <div className="mx-4 bg-primary-light rounded-xl p-4 mb-4">
+        {/* 거북이 팁 */}
+        <div className="mx-4 my-2 bg-[#e0efec] rounded-xl p-4">
           <div className="flex items-center gap-1.5 mb-1">
             <img src={pet1} alt="" className="w-5 h-5 object-contain" />
-            <p className="text-sm font-bold text-primary">거북이의 한마디</p>
+            <p className="text-sm font-bold text-[#3d8070]">거북이의 한마디</p>
           </div>
-          <p className="text-xs text-primary/80 leading-relaxed">
+          <p className="text-xs text-[#3d8070]/80 leading-relaxed">
             투두에 추가하면 마감일 전에 알림을 받을 수 있어요!
           </p>
         </div>
       </main>
 
-      {/* Bottom CTA */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-white border-t border-border-light px-4 py-3 safe-bottom">
+      {/* 하단 CTA */}
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-white border-t border-[#c5c6cc] px-6 py-4 safe-bottom">
         <div className="flex gap-3">
           <button
             onClick={handleBookmark}
-            className={`flex items-center justify-center gap-2 h-12 px-4 rounded-xl font-bold text-sm border-2 transition touch-manipulation flex-shrink-0 ${
+            className={`flex items-center justify-center gap-2 h-12 px-4 rounded-xl font-semibold text-sm border-2 transition touch-manipulation flex-shrink-0 ${
               ann.isBookmarked
-                ? 'border-primary bg-primary-light text-primary'
-                : 'border-border-default text-text-subtle'
+                ? 'border-primary bg-[#e0efec] text-primary'
+                : 'border-[#c5c6cc] text-[#71727a]'
             }`}
           >
             <Bookmark size={17} fill={ann.isBookmarked ? 'currentColor' : 'none'} />
@@ -191,7 +219,7 @@ export default function AnnouncementDetailPage() {
           <button
             onClick={handleAddTodo}
             disabled={expired}
-            className="btn-primary flex-1 gap-2 disabled:opacity-50"
+            className="btn-primary flex-1 gap-2"
           >
             <ExternalLink size={15} />
             투두에 추가하기

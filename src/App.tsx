@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
+import AiChatButton from './components/AiChatButton'
 
 // Onboarding
 import SplashPage from './pages/onboarding/SplashPage'
@@ -72,6 +73,9 @@ export default function App() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+
+      {/* 전역 AI 채팅 버튼 — 인증된 사용자에게만 표시 */}
+      <AiChatButton />
     </BrowserRouter>
   )
 }

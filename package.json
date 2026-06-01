@@ -4,15 +4,26 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"node server/index.js\" \"vite\" --names \"server,vite\" --prefix-colors \"cyan,green\"",
+    "dev:front": "vite",
+    "dev:server": "node server/index.js",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.100.1",
+    "@google/generative-ai": "^0.24.1",
+    "@supabase/supabase-js": "^2.106.2",
+    "axios": "^1.16.1",
     "clsx": "^2.0.0",
+    "cors": "^2.8.6",
     "date-fns": "^2.30.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "krds-uiux": "^1.1.0",
     "lucide-react": "^0.294.0",
+    "mkcert": "^3.2.0",
+    "openai": "^6.39.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.0",
@@ -23,9 +34,11 @@
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.2.0",
     "autoprefixer": "^10.4.16",
+    "concurrently": "^10.0.0",
     "postcss": "^8.4.31",
     "tailwindcss": "^3.3.5",
     "typescript": "^5.2.2",
-    "vite": "^5.4.21"
+    "vite": "^5.4.21",
+    "vite-plugin-mkcert": "^1.17.12"
   }
 }

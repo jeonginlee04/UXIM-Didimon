@@ -1,0 +1,21 @@
+◇ injected env (5) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+✅ 서버 실행 중: http://localhost:3001
+[ai/chat] 벡터 검색 실패 ([GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent: [403 Forbidden] Gemini API has not been used in project 751507102960 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/generativelanguage.googleapis.com/overview?project=751507102960 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry. [{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"SERVICE_DISABLED","domain":"googleapis.com","metadata":{"consumer":"projects/751507102960","containerInfo":"751507102960","service":"generativelanguage.googleapis.com","activationUrl":"https://console.developers.google.com/apis/api/generativelanguage.googleapis.com/overview?project=751507102960","serviceTitle":"Gemini API"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"Gemini API has not been used in project 751507102960 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/generativelanguage.googleapis.com/overview?project=751507102960 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry."},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Google developers console API activation","url":"https://console.developers.google.com/apis/api/generativelanguage.googleapis.com/overview?project=751507102960"}]}]) → 키워드 검색으로 전환
+[ai/chat] mode=api docs=4 q="�ڸ������� ����?"
+[ai/chat] Gemini 생성 실패 →  문서 요약 폴백: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googl
+API 오류 [https://api.odcloud.kr/api/15113968/v1/uddi:e7a38fd0-e38f-4c1f-91b6-b8b0bcc0e8f1]: Request failed with status code 400
+API 오류 [https://api.odcloud.kr/api/15090532/v1/uddi:2aa7a9de-b60c-494f-90eb-5d3ac47a7cdb]: Request failed with status code 400
+API 오류 [https://api.odcloud.kr/api/15108347/v1/uddi:6b72c6e8-de73-415d-a4d4-97a3c3f93b5c]: Request failed with status code 400
+API 오류 [https://api.odcloud.kr/api/15058476/v1/uddi:f0c1f4c5-e29b-4f9d-a7c8-3c4a3f5d9f3e]: Request failed with status code 400
+API 오류 [https://api.odcloud.kr/api/15090532/v1/uddi:2aa7a9de-b60c-494f-90eb-5d3ac47a7cdb]: Request failed with status code 400
+API 오류 [https://api.odcloud.kr/api/15113968/v1/uddi:e7a38fd0-e38f-4c1f-91b6-b8b0bcc0e8f1]: Request failed with status code 400
+API 오류 [https://api.odcloud.kr/api/15108347/v1/uddi:6b72c6e8-de73-415d-a4d4-97a3c3f93b5c]: Request failed with status code 400
+API 오류 [https://api.odcloud.kr/api/15058476/v1/uddi:f0c1f4c5-e29b-4f9d-a7c8-3c4a3f5d9f3e]: Request failed with status code 400
+API 오류 [https://api.odcloud.kr/api/15090532/v1/uddi:2aa7a9de-b60c-494f-90eb-5d3ac47a7cdb]: Request failed with status code 400
+API 오류 [https://api.odcloud.kr/api/15108347/v1/uddi:6b72c6e8-de73-415d-a4d4-97a3c3f93b5c]: Request failed with status code 400
+API 오류 [https://api.odcloud.kr/api/15113968/v1/uddi:e7a38fd0-e38f-4c1f-91b6-b8b0bcc0e8f1]: Request failed with status code 400
+API 오류 [https://api.odcloud.kr/api/15058476/v1/uddi:f0c1f4c5-e29b-4f9d-a7c8-3c4a3f5d9f3e]: Request failed with status code 400
+API 오류 [https://api.odcloud.kr/api/15108347/v1/uddi:6b72c6e8-de73-415d-a4d4-97a3c3f93b5c]: Request failed with status code 400
+API 오류 [https://api.odcloud.kr/api/15090532/v1/uddi:2aa7a9de-b60c-494f-90eb-5d3ac47a7cdb]: Request failed with status code 400
+API 오류 [https://api.odcloud.kr/api/15113968/v1/uddi:e7a38fd0-e38f-4c1f-91b6-b8b0bcc0e8f1]: Request failed with status code 400
+API 오류 [https://api.odcloud.kr/api/15058476/v1/uddi:f0c1f4c5-e29b-4f9d-a7c8-3c4a3f5d9f3e]: Request failed with status code 400

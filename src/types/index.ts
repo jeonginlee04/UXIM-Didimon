@@ -58,6 +58,9 @@ export interface Announcement {
   detailUrl?: string
   targetAge?: string
   amount?: string
+  keyword?: string   // 정책 키워드 (plcyKywdNm) — 카드 하단 태그 표시용
+  refUrl1?: string   // 참고 URL 1 (refUrlAddr1)
+  refUrl2?: string   // 참고 URL 2 (refUrlAddr2)
 }
 
 export interface Todo {
@@ -147,25 +150,25 @@ export const INTEREST_KEYWORD_LABELS: Record<InterestKeyword, string> = {
 }
 
 export const CATEGORY_COLORS: Record<Category, string> = {
-  finance:    '#256ef4',
-  housing:    '#7c3aed',
-  employment: '#228738',
-  education:  '#9e6a00',
+  finance:    '#c9960a',
+  housing:    '#3d8070',
+  employment: '#006FFD',
+  education:  '#006FFD',
   culture:    '#d63d4a',
 }
 
 export const ROADMAP_CATEGORY_COLORS: Record<RoadmapCategory, string> = {
-  finance:    '#256ef4',
-  housing:    '#7c3aed',
-  employment: '#228738',
-  education:  '#9e6a00',
+  finance:    '#c9960a',
+  housing:    '#3d8070',
+  employment: '#006FFD',
+  education:  '#006FFD',
 }
 
 export const ROADMAP_CATEGORY_BG: Record<RoadmapCategory, string> = {
-  finance:    '#EFF6FF',
-  housing:    '#F5F3FF',
-  employment: '#ECFDF5',
-  education:  '#FFFBEB',
+  finance:    '#fff1ce',
+  housing:    '#e0efec',
+  employment: '#eaf2ff',
+  education:  '#eaf2ff',
 }
 
 export const ROADMAP_CATEGORY_ICONS: Record<RoadmapCategory, string> = {
@@ -176,11 +179,11 @@ export const ROADMAP_CATEGORY_ICONS: Record<RoadmapCategory, string> = {
 }
 
 export const CATEGORY_BG: Record<Category, string> = {
-  finance:    '#EFF6FF',
-  housing:    '#F5F3FF',
-  employment: '#ECFDF5',
-  education:  '#FFFBEB',
-  culture:    '#FDF2F8',
+  finance:    '#fff1ce',
+  housing:    '#e0efec',
+  employment: '#eaf2ff',
+  education:  '#eaf2ff',
+  culture:    '#eaf2ff',
 }
 
 export const CATEGORY_ICONS: Record<Category, string> = {

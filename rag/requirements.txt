@@ -1,0 +1,10 @@
+# 공통 필수
+supabase>=2.3.0
+python-dotenv>=1.0.0
+
+# OpenAI 임베딩 (--provider openai 사용 시)
+openai>=1.30.0
+
+# HuggingFace 임베딩 (--provider huggingface 사용 시, 무료)
+# sentence-transformers>=2.6.0
+# torch>=2.0.0
