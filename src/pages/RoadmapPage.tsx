@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BottomNav from '../components/common/BottomNav'
 import { useAuthStore } from '../store/authStore'
@@ -15,7 +16,7 @@ import {
 } from '../types'
 import type { RoadmapCategory } from '../types'
 
-const ROADMAP_CATS: RoadmapCategory[] = ['finance', 'housing', 'employment', 'education']
+const ALL_ROADMAP_CATS: RoadmapCategory[] = ['finance', 'housing', 'employment', 'education', 'mental_health', 'physical_health', 'social_connection']
 
 const STATUS_LABEL: Record<string, string> = {
   finance: '주의 필요',
@@ -27,9 +28,20 @@ const STATUS_LABEL: Record<string, string> = {
 export default function RoadmapPage() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
-  const { getCategoryProgress, dailyQuests, canDoWeeklyCheck } = useRoadmapStore()
+
+  const userInterestCats = (user?.interests ?? []).filter(
+    (k): k is RoadmapCategory => ALL_ROADMAP_CATS.includes(k as RoadmapCategory)
+  )
+  const shownCats = userInterestCats.length > 0 ? userInterestCats : ALL_ROADMAP_CATS
+  const { getCategoryProgress, dailyQuests, canDoWeeklyCheck, checkAndResetDailyQuests } = useRoadmapStore()
   const { getProgress } = useTodoStore()
   const { announcements } = useAnnouncementStore()
+
+  const [bannerDismissed, setBannerDismissed] = useState(false)
+
+  useEffect(() => {
+    checkAndResetDailyQuests()
+  }, [])
 
   const level = user?.level ?? 1
   const exp = user?.exp ?? 0
@@ -49,7 +61,7 @@ export default function RoadmapPage() {
       <div className="h-11 bg-white" />
 
       {/* 공지사항 배너 */}
-      {latestAnn && (
+      {latestAnn && !bannerDismissed && (
         <div className="mx-4 mb-3">
           <div className="bg-white border border-[#ff9277] rounded-2xl shadow-sm overflow-hidden">
             <div className="flex items-center px-5 py-4 gap-3">
@@ -60,7 +72,7 @@ export default function RoadmapPage() {
                 </p>
               </div>
               <button
-                onClick={() => navigate(`/search/${latestAnn.id}`)}
+                onClick={() => setBannerDismissed(true)}
                 className="flex-shrink-0 text-[#ff9277] touch-manipulation"
                 aria-label="닫기"
               >
@@ -79,7 +91,7 @@ export default function RoadmapPage() {
         <div>
           <h2 className="text-[14px] font-bold text-[#1f2024] mb-3">분야별 현황</h2>
           <div className="grid grid-cols-2 gap-3">
-            {ROADMAP_CATS.map((cat) => {
+            {shownCats.map((cat) => {
               const { completed, total } = getCategoryProgress(cat)
               const todoPct = getProgress(cat)
               const color = ROADMAP_CATEGORY_COLORS[cat]

@@ -1,8 +1,8 @@
-// Announcement categories (5)
-export type Category = 'finance' | 'housing' | 'employment' | 'education' | 'culture'
+// Announcement categories
+export type Category = 'finance' | 'housing' | 'employment' | 'education' | 'culture' | 'mental_health' | 'physical_health' | 'social_connection'
 
-// Roadmap categories (4 — no culture)
-export type RoadmapCategory = 'finance' | 'housing' | 'employment' | 'education'
+// Roadmap categories
+export type RoadmapCategory = 'finance' | 'housing' | 'employment' | 'education' | 'mental_health' | 'physical_health' | 'social_connection'
 
 // 7 interest keywords for personalization
 export type InterestKeyword =
@@ -125,18 +125,24 @@ export interface Notification {
 // ── Labels & Colors ──────────────────────────────────────────────
 
 export const CATEGORY_LABELS: Record<Category, string> = {
-  finance:    '금융',
-  housing:    '주거',
-  employment: '취업',
-  education:  '학업',
-  culture:    '생활&문화',
+  finance:          '금융',
+  housing:          '주거',
+  employment:       '취업',
+  education:        '학업',
+  culture:          '생활&문화',
+  mental_health:    '정신 건강',
+  physical_health:  '신체 건강',
+  social_connection:'사회적 연결',
 }
 
 export const ROADMAP_CATEGORY_LABELS: Record<RoadmapCategory, string> = {
-  finance:    '금융',
-  housing:    '주거',
-  employment: '취업',
-  education:  '학업',
+  finance:          '금융',
+  housing:          '주거',
+  employment:       '취업',
+  education:        '학업',
+  mental_health:    '정신 건강',
+  physical_health:  '신체 건강',
+  social_connection:'사회적 연결',
 }
 
 export const INTEREST_KEYWORD_LABELS: Record<InterestKeyword, string> = {
@@ -150,48 +156,66 @@ export const INTEREST_KEYWORD_LABELS: Record<InterestKeyword, string> = {
 }
 
 export const CATEGORY_COLORS: Record<Category, string> = {
-  finance:    '#c9960a',
-  housing:    '#3d8070',
-  employment: '#006FFD',
-  education:  '#006FFD',
-  culture:    '#d63d4a',
+  finance:          '#c9960a',
+  housing:          '#3d8070',
+  employment:       '#006FFD',
+  education:        '#006FFD',
+  culture:          '#d63d4a',
+  mental_health:    '#7c5cbf',
+  physical_health:  '#e07a3a',
+  social_connection:'#d63d6e',
 }
 
 export const ROADMAP_CATEGORY_COLORS: Record<RoadmapCategory, string> = {
-  finance:    '#c9960a',
-  housing:    '#3d8070',
-  employment: '#006FFD',
-  education:  '#006FFD',
+  finance:          '#c9960a',
+  housing:          '#3d8070',
+  employment:       '#006FFD',
+  education:        '#006FFD',
+  mental_health:    '#7c5cbf',
+  physical_health:  '#e07a3a',
+  social_connection:'#d63d6e',
 }
 
 export const ROADMAP_CATEGORY_BG: Record<RoadmapCategory, string> = {
-  finance:    '#fff1ce',
-  housing:    '#e0efec',
-  employment: '#eaf2ff',
-  education:  '#eaf2ff',
+  finance:          '#fff1ce',
+  housing:          '#e0efec',
+  employment:       '#eaf2ff',
+  education:        '#eaf2ff',
+  mental_health:    '#f0ebf9',
+  physical_health:  '#fef0e6',
+  social_connection:'#fce8ef',
 }
 
 export const ROADMAP_CATEGORY_ICONS: Record<RoadmapCategory, string> = {
-  finance:    '💰',
-  housing:    '🏠',
-  employment: '💼',
-  education:  '📚',
+  finance:          '💰',
+  housing:          '🏠',
+  employment:       '💼',
+  education:        '📚',
+  mental_health:    '🧘',
+  physical_health:  '🏃',
+  social_connection:'🤝',
 }
 
 export const CATEGORY_BG: Record<Category, string> = {
-  finance:    '#fff1ce',
-  housing:    '#e0efec',
-  employment: '#eaf2ff',
-  education:  '#eaf2ff',
-  culture:    '#eaf2ff',
+  finance:          '#fff1ce',
+  housing:          '#e0efec',
+  employment:       '#eaf2ff',
+  education:        '#eaf2ff',
+  culture:          '#eaf2ff',
+  mental_health:    '#f0ebf9',
+  physical_health:  '#fef0e6',
+  social_connection:'#fce8ef',
 }
 
 export const CATEGORY_ICONS: Record<Category, string> = {
-  finance:    '💰',
-  housing:    '🏠',
-  employment: '💼',
-  education:  '📚',
-  culture:    '🎨',
+  finance:          '💰',
+  housing:          '🏠',
+  employment:       '💼',
+  education:        '📚',
+  culture:          '🎨',
+  mental_health:    '🧘',
+  physical_health:  '🏃',
+  social_connection:'🤝',
 }
 
 export const STATUS_LABELS: Record<TodoStatus, string> = {

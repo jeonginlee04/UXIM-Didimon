@@ -3,11 +3,14 @@ import type { Category } from '../../types'
 
 // KRDS-aligned category colors
 const CAT_COLOR: Record<Category, { text: string; bg: string; border: string }> = {
-  finance:    { text: '#0b50d0', bg: '#ecf2fe', border: '#b1cefb' },
-  housing:    { text: '#5b21b6', bg: '#f5f3ff', border: '#c4b5fd' },
-  employment: { text: '#267337', bg: '#eaf6ec', border: '#a9dab4' },
-  education:  { text: '#8a5c00', bg: '#fff3db', border: '#ffc95c' },
-  culture:    { text: '#ab2b36', bg: '#fbeff0', border: '#ebadb2' },
+  finance:          { text: '#0b50d0', bg: '#ecf2fe', border: '#b1cefb' },
+  housing:          { text: '#5b21b6', bg: '#f5f3ff', border: '#c4b5fd' },
+  employment:       { text: '#267337', bg: '#eaf6ec', border: '#a9dab4' },
+  education:        { text: '#8a5c00', bg: '#fff3db', border: '#ffc95c' },
+  culture:          { text: '#ab2b36', bg: '#fbeff0', border: '#ebadb2' },
+  mental_health:    { text: '#5b21b6', bg: '#f5f3ff', border: '#c4b5fd' },
+  physical_health:  { text: '#7c4f1e', bg: '#fef0e6', border: '#f5c59a' },
+  social_connection:{ text: '#9b1c4a', bg: '#fce8ef', border: '#f5adc5' },
 }
 
 interface CategoryBadgeProps {

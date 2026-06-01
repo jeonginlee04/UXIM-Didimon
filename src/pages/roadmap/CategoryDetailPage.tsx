@@ -9,7 +9,7 @@ import {
   ROADMAP_CATEGORY_COLORS,
   ROADMAP_CATEGORY_BG,
 } from '../../types'
-import type { RoadmapCategory } from '../../types'
+import type { RoadmapCategory, Category } from '../../types'
 
 export default function CategoryDetailPage() {
   const { cat } = useParams<{ cat: string }>()
@@ -17,11 +17,12 @@ export default function CategoryDetailPage() {
   const category = cat as RoadmapCategory
 
   const { getByCategory, getCategoryProgress, toggleExpand } = useRoadmapStore()
-  const { todos } = useTodoStore()
+  const { todos, getProgress } = useTodoStore()
   const { announcements } = useAnnouncementStore()
 
   const items = getByCategory(category)
-  const { completed, total, pct } = getCategoryProgress(category)
+  const { completed, total } = getCategoryProgress(category)
+  const pct = getProgress(category as Category)
 
   const color = ROADMAP_CATEGORY_COLORS[category]
   const bg = ROADMAP_CATEGORY_BG[category]

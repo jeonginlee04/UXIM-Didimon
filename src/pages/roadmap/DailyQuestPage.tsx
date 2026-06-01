@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { ChevronLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useRoadmapStore } from '../../store/roadmapStore'
@@ -6,8 +7,12 @@ import pet1 from '../../assets/pet1.png'
 
 export default function DailyQuestPage() {
   const navigate = useNavigate()
-  const { dailyQuests, completeQuest } = useRoadmapStore()
+  const { dailyQuests, toggleQuest, checkAndResetDailyQuests } = useRoadmapStore()
   const { addExp } = useAuthStore()
+
+  useEffect(() => {
+    checkAndResetDailyQuests()
+  }, [])
 
   const completed = dailyQuests.filter((q) => q.isCompleted).length
   const total = dailyQuests.length
@@ -61,8 +66,7 @@ export default function DailyQuestPage() {
             >
               <div className="flex items-start gap-3">
                 <button
-                  onClick={() => !quest.isCompleted && completeQuest(quest.id, addExp)}
-                  disabled={quest.isCompleted}
+                  onClick={() => toggleQuest(quest.id, addExp)}
                   className="mt-0.5 flex-shrink-0 touch-manipulation"
                 >
                   <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
