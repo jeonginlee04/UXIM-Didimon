@@ -1,6 +1,6 @@
 import type { Announcement, Category } from '../types'
 
-const SERVER_URL = 'http://localhost:3001'
+const SERVER_URL = ''
 
 /** 온통청년 lclsfNm/mclsfNm → 필터 옵션과 매핑되는 benefitType으로 정규화 */
 function normalizeBenefitType(raw: string): string {
