@@ -39,8 +39,7 @@ function getSupabase() {
 // ── 인증키 (환경변수 우선, 하드코딩 폴백) ────────────────────
 const DATA_GO_KR_KEY = process.env.DATA_GO_KR_KEY ||
   "74888f61216f843cfa35821955d4d11f3c18a4c2c0d766e8aabd9f9103dd82c5";
-const YOUTH_KEY = process.env.YOUTH_KEY ||
-  "54e72035-7ec7-4803-948a-c8d1a60cca5f";
+const YOUTH_KEY = process.env.YOUTH_KEY;
 const WELFARE_KEY = process.env.WELFARE_KEY ||
   "758954077e0c61c99e6fa5f2cc45de5a53723e91674d12ab64e72fcf67c93236";
 
