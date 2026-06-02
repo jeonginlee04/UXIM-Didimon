@@ -61,9 +61,15 @@ export default function CategoryDetailPage() {
   const { completed, total } = getCategoryProgress(category)
   const pct = getProgress(category as Category)
 
-  const color = ROADMAP_CATEGORY_COLORS[category]
-  const bg = ROADMAP_CATEGORY_BG[category]
   const label = ROADMAP_CATEGORY_LABELS[category]
+
+  // 상태별 색상 — RoadmapPage와 동일
+  const statusInfo =
+    pct >= 80
+      ? { cardBg: '#d1fae5', iconBg: '#a7f3d0', iconColor: '#065f46', barColor: '#22c55e', pctColor: '#065f46' }
+      : pct > 0
+      ? { cardBg: '#dbeafe', iconBg: '#bfdbfe', iconColor: '#1e3a8a', barColor: '#3b82f6', pctColor: '#1e40af' }
+      : { cardBg: '#fef3c7', iconBg: '#fde68a', iconColor: '#78350f', barColor: '#f59e0b', pctColor: '#92400e' }
 
   if (!label) {
     return (
@@ -95,13 +101,13 @@ export default function CategoryDetailPage() {
 
       <main className="flex-1 px-4 py-4">
         {/* 카테고리 진행도 카드 */}
-        <div className="rounded-2xl p-5 mb-5" style={{ backgroundColor: bg }}>
+        <div className="rounded-2xl p-5 mb-5" style={{ backgroundColor: statusInfo.cardBg }}>
           <div className="flex items-center gap-3 mb-4">
             <div
               className="w-12 h-12 rounded-2xl flex items-center justify-center"
-              style={{ backgroundColor: `${color}25` }}
+              style={{ backgroundColor: statusInfo.iconBg }}
             >
-              <CategoryIcon category={category} size={22} style={{ color }} />
+              <CategoryIcon category={category} size={22} style={{ color: statusInfo.iconColor }} />
             </div>
             <div>
               <p className="text-[14px] font-bold text-[#1f2024]">{label}</p>
@@ -110,12 +116,12 @@ export default function CategoryDetailPage() {
           </div>
           <div className="flex items-center justify-between mb-2">
             <span className="text-[12px] text-[#71727a]">전체 진행률</span>
-            <span className="text-[12px] font-bold" style={{ color }}>{pct}%</span>
+            <span className="text-[12px] font-bold" style={{ color: statusInfo.pctColor }}>{pct}%</span>
           </div>
-          <div className="h-2 bg-white/60 rounded-full overflow-hidden">
+          <div className="h-2 bg-black/10 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-700"
-              style={{ width: `${pct}%`, backgroundColor: color }}
+              style={{ width: `${pct}%`, backgroundColor: statusInfo.barColor }}
             />
           </div>
         </div>
@@ -138,7 +144,7 @@ export default function CategoryDetailPage() {
                   >
                     <div
                       className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                      style={{ backgroundColor: bg, color }}
+                      style={{ backgroundColor: statusInfo.iconBg, color: statusInfo.iconColor }}
                     >
                       {idx + 1}
                     </div>
@@ -242,8 +248,8 @@ export default function CategoryDetailPage() {
 
         {items.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ backgroundColor: bg }}>
-              <CategoryIcon category={category} size={28} style={{ color }} />
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ backgroundColor: statusInfo.iconBg }}>
+              <CategoryIcon category={category} size={28} style={{ color: statusInfo.iconColor }} />
             </div>
             <p className="text-sm text-[#71727a] text-center">아직 로드맵 항목이 없어요.</p>
           </div>

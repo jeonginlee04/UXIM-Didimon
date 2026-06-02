@@ -108,37 +108,38 @@ export default function RoadmapPage() {
               const todoPct = getProgress(cat)
               const color = ROADMAP_CATEGORY_COLORS[cat]
 
-              // 상태별 색상 정의
+              // 상태별 색상 — 카드 배경·뱃지·아이콘·진행바 통합
               const statusInfo =
                 todoPct >= 80
-                  ? { label: '안정 상태', textColor: '#1a7a4a', bgColor: '#d1fae5', barColor: '#22c55e' }
+                  ? { label: '안정 상태', cardBg: '#d1fae5', iconBg: '#a7f3d0', iconColor: '#065f46', badgeText: '#065f46', badgeBg: '#a7f3d0', barColor: '#22c55e' }
                   : todoPct > 0
-                  ? { label: '진행중',   textColor: '#1e40af', bgColor: '#dbeafe', barColor: '#3b82f6' }
-                  : { label: '시작전',   textColor: '#92400e', bgColor: '#fef3c7', barColor: '#f59e0b' }
+                  ? { label: '진행중',   cardBg: '#dbeafe', iconBg: '#bfdbfe', iconColor: '#1e3a8a', badgeText: '#1e40af', badgeBg: '#bfdbfe', barColor: '#3b82f6' }
+                  : { label: '시작전',   cardBg: '#fef3c7', iconBg: '#fde68a', iconColor: '#78350f', badgeText: '#92400e', badgeBg: '#fde68a', barColor: '#f59e0b' }
 
               return (
                 <button
                   key={cat}
                   onClick={() => navigate(`/roadmap/category/${cat}`)}
-                  className="rounded-2xl p-4 text-left active:opacity-80 touch-manipulation bg-white border border-[#e8e9f1]"
+                  className="rounded-2xl p-4 text-left active:opacity-75 touch-manipulation"
+                  style={{ backgroundColor: statusInfo.cardBg }}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-[14px] font-bold text-[#1f2024]">
                       {ROADMAP_CATEGORY_LABELS[cat]}
                     </p>
                     {CAT_ICON[cat] && (
-                      <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}20` }}>
-                        {(() => { const Icon = CAT_ICON[cat]; return <Icon size={16} style={{ color }} /> })()}
+                      <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: statusInfo.iconBg }}>
+                        {(() => { const Icon = CAT_ICON[cat]; return <Icon size={16} style={{ color: statusInfo.iconColor }} /> })()}
                       </div>
                     )}
                   </div>
                   <span
                     className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mb-2"
-                    style={{ color: statusInfo.textColor, backgroundColor: statusInfo.bgColor }}
+                    style={{ color: statusInfo.badgeText, backgroundColor: statusInfo.badgeBg }}
                   >
                     {statusInfo.label}
                   </span>
-                  <div className="h-1.5 bg-[#e8e9f1] rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-black/10 rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{ width: `${todoPct}%`, backgroundColor: statusInfo.barColor }}
