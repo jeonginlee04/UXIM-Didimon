@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, Loader2 } from 'lucide-react'
 import { useRoadmapStore } from '../../store/roadmapStore'
 import { useAuthStore } from '../../store/authStore'
+import { useTodoStore } from '../../store/todoStore'
 import { WEEKLY_CHECK_QUESTIONS } from '../../types'
+import { fetchWeeklyFeedback } from '../../services/aiChatApi'
+import type { WeeklyFeedback } from '../../types'
 import pet1 from '../../assets/pet1.png'
 
 const WEEKLY_CHECK_EXP = 20
@@ -18,26 +21,45 @@ const TURTLE_MESSAGES = [
 export default function WeeklyCheckPage() {
   const navigate = useNavigate()
   const { saveWeeklyCheck } = useRoadmapStore()
-  const { addExp } = useAuthStore()
+  const { addExp, user } = useAuthStore()
+  const { todos } = useTodoStore()
 
-  const [step, setStep] = useState(0)
+  const [step, setStep]       = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
-  const [done, setDone] = useState(false)
+  const [done, setDone]       = useState(false)
+  const [feedback, setFeedback]     = useState<WeeklyFeedback | null>(null)
+  const [feedbackLoading, setFeedbackLoading] = useState(false)
 
-  const total = WEEKLY_CHECK_QUESTIONS.length
+  const total   = WEEKLY_CHECK_QUESTIONS.length
   const current = WEEKLY_CHECK_QUESTIONS[step]
-  const progress = (step / total) * 100
+
   const canProceed = !!answers[current?.id]
 
-  const handleAnswer = (value: string) => setAnswers((prev) => ({ ...prev, [current.id]: value }))
+  const handleAnswer = (value: string) =>
+    setAnswers((prev) => ({ ...prev, [current.id]: value }))
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < total - 1) {
       setStep(step + 1)
     } else {
       saveWeeklyCheck(answers)
       addExp(WEEKLY_CHECK_EXP)
       setDone(true)
+
+      // AI 피드백 비동기 로드
+      setFeedbackLoading(true)
+      const weekTodos = todos.filter((t) => t.status === 'done' || t.status === 'todo')
+      const completed  = todos.filter((t) => t.status === 'done').map((t) => t.content)
+      const incomplete = todos.filter((t) => t.status === 'todo').map((t) => t.content)
+
+      const result = await fetchWeeklyFeedback({
+        completed:    completed.slice(0, 10),
+        incomplete:   incomplete.slice(0, 10),
+        answers,
+        userInterests: (user?.interests ?? []) as string[],
+      })
+      setFeedback(result)
+      setFeedbackLoading(false)
     }
   }
 
@@ -50,18 +72,64 @@ export default function WeeklyCheckPage() {
           </button>
           <h1 className="flex-1 text-[14px] font-bold text-[#1f2024] text-center mr-8">주간 점검</h1>
         </div>
-        <div className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-5">
-          <img src={pet1} alt="" className="w-24 h-24 object-contain" />
-          <div>
-            <h2 className="text-[18px] font-extrabold text-[#1f2024] mb-2">이번 주도 수고했어요!</h2>
-            <p className="text-[14px] text-[#71727a] leading-relaxed">
-              주간 점검을 완료했어요.<br />다음 주에도 꾸준히 함께해요!
-            </p>
+
+        <div className="flex-1 px-5 py-6 space-y-5 overflow-y-auto">
+          {/* 완료 헤더 */}
+          <div className="flex flex-col items-center text-center gap-4">
+            <img src={pet1} alt="" className="w-20 h-20 object-contain" />
+            <div>
+              <h2 className="text-[18px] font-extrabold text-[#1f2024] mb-1">이번 주도 수고했어요!</h2>
+              <p className="text-[14px] text-[#71727a] leading-relaxed">
+                주간 점검을 완료했어요.<br />다음 주에도 꾸준히 함께해요!
+              </p>
+            </div>
+            <div className="bg-[#e0efec] rounded-2xl px-6 py-3 w-full">
+              <p className="text-[#3d8070] font-bold text-sm">+{WEEKLY_CHECK_EXP} EXP 획득! 🎉</p>
+            </div>
           </div>
-          <div className="bg-[#e0efec] rounded-2xl px-6 py-4 w-full">
-            <p className="text-[#3d8070] font-bold text-sm">+{WEEKLY_CHECK_EXP} EXP 획득! 🎉</p>
+
+          {/* AI 피드백 카드 */}
+          <div className="bg-white rounded-2xl border border-border-light p-5">
+            <p className="text-[13px] font-bold text-text-basic mb-3">✨ AI 주간 피드백</p>
+
+            {feedbackLoading ? (
+              <div className="flex items-center gap-2 py-4 justify-center">
+                <Loader2 size={16} className="text-primary animate-spin" />
+                <p className="text-[13px] text-text-subtle">피드백을 분석 중이에요…</p>
+              </div>
+            ) : feedback ? (
+              <div className="space-y-3">
+                <p className="text-[13px] text-text-basic leading-relaxed">{feedback.feedback}</p>
+
+                <div className="bg-[#e0efec] rounded-xl px-4 py-3">
+                  <p className="text-[11px] font-semibold text-[#3d8070] mb-1">💪 잘한 점</p>
+                  <p className="text-[12px] text-[#3d8070]">{feedback.strengths}</p>
+                </div>
+
+                <div className="bg-[#fff1ce] rounded-xl px-4 py-3">
+                  <p className="text-[11px] font-semibold text-[#c9960a] mb-2">📌 다음 주 제안</p>
+                  <ul className="space-y-1">
+                    {feedback.suggestions.map((s, i) => (
+                      <li key={i} className="text-[12px] text-[#c9960a] flex gap-1.5">
+                        <span className="flex-shrink-0">•</span>{s}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <p className="text-[12px] text-text-subtle text-center italic">{feedback.encouragement}</p>
+              </div>
+            ) : (
+              <p className="text-[13px] text-text-subtle text-center py-2">
+                피드백을 불러오지 못했어요. 앱을 계속 사용해주세요 😊
+              </p>
+            )}
           </div>
-          <button onClick={() => navigate('/roadmap', { replace: true })} className="btn-primary w-full">
+
+          <button
+            onClick={() => navigate('/roadmap', { replace: true })}
+            className="btn-primary w-full"
+          >
             로드맵으로 돌아가기
           </button>
         </div>

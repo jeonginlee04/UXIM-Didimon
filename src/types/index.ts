@@ -98,6 +98,29 @@ export interface DailyQuest {
   category?: RoadmapCategory
 }
 
+// ── AI 기능 타입 ─────────────────────────────────────────────
+
+export interface TodoRecommendation {
+  title: string
+  category: Category
+  reason: string
+  difficulty: 'easy' | 'medium' | 'hard'
+}
+
+export interface WeeklyFeedback {
+  feedback: string
+  strengths: string
+  suggestions: string[]
+  encouragement: string
+}
+
+export interface AiChatResponse {
+  answer: string
+  sources: string[]
+  announcements?: Announcement[]
+  intent?: 'policy_search' | 'procedure' | 'emotional' | 'general'
+}
+
 export interface WeeklyCheckQuestion {
   id: string
   question: string

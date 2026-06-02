@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
-import { Plus, X, Bell, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, X, Bell, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import BottomNav from "../components/common/BottomNav";
+import TodoRecommendModal from "../components/TodoRecommendModal";
 import pet1 from "../assets/pet1.png";
 import { useTodoStore } from "../store/todoStore";
+import { useAuthStore } from "../store/authStore";
+import { fetchTodoRecommendations } from "../services/aiChatApi";
 import { CATEGORY_LABELS, CATEGORY_ICONS, STATUS_LABELS } from "../types";
-import type { Category, TodoStatus, Priority } from "../types";
+import type { Category, TodoStatus, Priority, TodoRecommendation } from "../types";
 
 const ALL_CATS: Category[] = [
   "finance",
@@ -80,6 +83,7 @@ const defaultForm: TodoForm = {
 export default function ChecklistPage() {
   const { todos, addTodo, changeStatus, deleteTodo, updateTodo } =
     useTodoStore();
+  const { user } = useAuthStore();
   const [searchParams] = useSearchParams();
   const prefilledContent = searchParams.get("content") ?? "";
   const prefilledCategory = (searchParams.get("category") ??
@@ -104,6 +108,9 @@ export default function ChecklistPage() {
     null,
   );
   const [editForm, setEditForm] = useState<TodoForm>({ ...defaultForm });
+  const [showAiRecommend, setShowAiRecommend] = useState(false);
+  const [aiRecommendations, setAiRecommendations] = useState<TodoRecommendation[]>([]);
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   useEffect(() => {
     if (prefilledContent) {
@@ -182,6 +189,33 @@ export default function ChecklistPage() {
     });
     setShowEdit(false);
     setEditingTodo(null);
+  };
+
+  const handleOpenAiRecommend = async () => {
+    setShowAiRecommend(true);
+    if (aiRecommendations.length > 0) return; // 이미 로드된 경우 재사용
+    setIsAiLoading(true);
+    const completedTodos = todos.filter((t) => t.status === "done").map((t) => t.content);
+    const recs = await fetchTodoRecommendations({
+      userInterests: (user?.interests ?? []) as string[],
+      completedTodos,
+      roadmapProgress: {},
+    });
+    setAiRecommendations(recs);
+    setIsAiLoading(false);
+  };
+
+  const handleAddRecommendedTodos = (selected: TodoRecommendation[]) => {
+    selected.forEach((item) => {
+      addTodo({
+        content: item.title,
+        category: item.category,
+        dueDate: selectedDate,
+        status: "todo",
+        priority: item.difficulty === "hard" ? "high" : item.difficulty === "medium" ? "medium" : "low",
+        hasNotification: false,
+      });
+    });
   };
 
   const handlePickerDateSelect = (year: number, month: number, day: number) => {
@@ -446,13 +480,29 @@ export default function ChecklistPage() {
 
       {/* 하단 버튼 */}
       <div className="fixed bottom-[72px] left-1/2 -translate-x-1/2 w-full max-w-[480px] px-6 pointer-events-none">
-        <button
-          onClick={() => setShowAdd(true)}
-          className="pointer-events-auto btn-primary shadow-md gap-2"
-        >
-          <Plus size={16} /> 투두리스트 추가하기
-        </button>
+        <div className="flex gap-2 pointer-events-auto">
+          <button
+            onClick={handleOpenAiRecommend}
+            className="h-12 px-4 bg-white text-[#c9960a] text-sm font-semibold rounded-xl border border-[#c9960a] flex items-center gap-1.5 shadow-md touch-manipulation flex-shrink-0 active:bg-[#fff1ce]"
+          >
+            <Sparkles size={15} /> AI 추천
+          </button>
+          <button
+            onClick={() => setShowAdd(true)}
+            className="btn-primary shadow-md gap-2 flex-1"
+          >
+            <Plus size={16} /> 투두리스트 추가하기
+          </button>
+        </div>
       </div>
+
+      <TodoRecommendModal
+        isOpen={showAiRecommend}
+        onClose={() => setShowAiRecommend(false)}
+        recommendations={aiRecommendations}
+        isLoading={isAiLoading}
+        onAddTodos={handleAddRecommendedTodos}
+      />
 
       {/* 추가 모달 */}
       {showAdd && (
