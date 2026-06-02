@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
 import { useTodoStore } from '../../store/todoStore'
 import { useAuthStore } from '../../store/authStore'
-import { CATEGORY_LABELS, CATEGORY_ICONS, CATEGORY_BG, CATEGORY_COLORS, EXP_PER_LEVEL, getLevelProgress } from '../../types'
+import { CATEGORY_LABELS, CATEGORY_BG, CATEGORY_COLORS, EXP_PER_LEVEL, getLevelProgress } from '../../types'
+import CategoryIcon from '../../components/common/CategoryIcon'
 import type { Category } from '../../types'
 
 const ACTIVITY_CATS: Category[] = ['finance', 'housing', 'employment', 'education', 'culture']
@@ -86,7 +87,7 @@ export default function ActivityHistoryTab() {
               const pct   = Math.round((count / maxCount) * 100)
               return (
                 <div key={cat} className="flex items-center gap-3">
-                  <span className="text-base w-6 text-center flex-shrink-0">{CATEGORY_ICONS[cat]}</span>
+                  <div className="w-6 flex justify-center flex-shrink-0"><CategoryIcon category={cat} size={14} style={{ color }} /></div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-0.5">
                       <span className="text-[11px] font-medium text-[#494a50]">{CATEGORY_LABELS[cat]}</span>
@@ -124,9 +125,9 @@ export default function ActivityHistoryTab() {
                 <div key={todo.id} className="flex items-center gap-3 bg-[#f8f9fe] rounded-xl px-3 py-2.5">
                   <span
                     className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] flex-shrink-0"
-                    style={{ backgroundColor: bg, color }}
+                    style={{ backgroundColor: bg }}
                   >
-                    {CATEGORY_ICONS[cat]}
+                    <CategoryIcon category={cat} size={12} style={{ color }} />
                   </span>
                   <p className="flex-1 text-[12px] text-[#1f2024] line-clamp-1">{todo.content}</p>
                   <span className="text-[10px] text-[#8f9098] flex-shrink-0">

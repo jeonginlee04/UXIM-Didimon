@@ -4,9 +4,9 @@ import { ChevronLeft, ChevronDown, ChevronUp, ExternalLink, Pencil, X } from 'lu
 import { useRoadmapStore } from '../../store/roadmapStore'
 import { useTodoStore } from '../../store/todoStore'
 import { useAnnouncementStore } from '../../store/announcementStore'
+import CategoryIcon from '../../components/common/CategoryIcon'
 import {
   ROADMAP_CATEGORY_LABELS,
-  ROADMAP_CATEGORY_ICONS,
   ROADMAP_CATEGORY_COLORS,
   ROADMAP_CATEGORY_BG,
 } from '../../types'
@@ -43,7 +43,6 @@ export default function CategoryDetailPage() {
 
   const color = ROADMAP_CATEGORY_COLORS[category]
   const bg = ROADMAP_CATEGORY_BG[category]
-  const icon = ROADMAP_CATEGORY_ICONS[category]
   const label = ROADMAP_CATEGORY_LABELS[category]
 
   if (!label) {
@@ -70,7 +69,7 @@ export default function CategoryDetailPage() {
           <ChevronLeft size={22} className="text-[#1f2024]" />
         </button>
         <h1 className="flex-1 text-[14px] font-bold text-[#1f2024] text-center mr-8">
-          {icon} {label} 로드맵
+          {label} 로드맵
         </h1>
       </div>
 
@@ -79,10 +78,10 @@ export default function CategoryDetailPage() {
         <div className="rounded-2xl p-5 mb-5" style={{ backgroundColor: bg }}>
           <div className="flex items-center gap-3 mb-4">
             <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl"
+              className="w-12 h-12 rounded-2xl flex items-center justify-center"
               style={{ backgroundColor: `${color}25` }}
             >
-              {icon}
+              <CategoryIcon category={category} size={22} style={{ color }} />
             </div>
             <div>
               <p className="text-[14px] font-bold text-[#1f2024]">{label}</p>
@@ -185,7 +184,9 @@ export default function CategoryDetailPage() {
 
         {items.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <span className="text-5xl">{icon}</span>
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ backgroundColor: bg }}>
+              <CategoryIcon category={category} size={28} style={{ color }} />
+            </div>
             <p className="text-sm text-[#71727a] text-center">아직 로드맵 항목이 없어요.</p>
           </div>
         )}

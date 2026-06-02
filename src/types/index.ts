@@ -18,6 +18,9 @@ export type Role = 'mentee' | 'mentor'
 export type TodoStatus = 'todo' | 'done'
 export type Priority = 'high' | 'medium' | 'low'
 
+export type CareType = 'foster' | 'group_home' | 'facility' | 'other'
+export type CurrentSituation = 'job_seeking' | 'studying' | 'employed' | 'etc'
+
 export interface User {
   id: string
   name: string
@@ -32,6 +35,11 @@ export interface User {
   exp: number
   createdAt: string
   notificationSettings?: NotificationSettings
+  // 온보딩 추가 정보
+  careType?: CareType
+  age?: number
+  yearsAfterCare?: number   // 보호종료 연차 (0~5+)
+  currentSituation?: CurrentSituation
 }
 
 export interface NotificationSettings {
@@ -272,24 +280,24 @@ export const getLevelProgress = (exp: number) => exp % EXP_PER_LEVEL
 export const WEEKLY_CHECK_QUESTIONS: WeeklyCheckQuestion[] = [
   {
     id: 'q1',
-    question: '이번 주 자립에서 가장 어려웠던 순간은?',
+    question: '이번 주 나 자신을 평가한다면?',
     type: 'choice',
-    options: ['금전 관리', '주거 문제', '취업·학업', '외로움·감정', '어려움 없었어요'],
+    options: ['매우 잘했어요', '잘했어요', '보통이에요', '조금 아쉬웠어요', '많이 힘들었어요'],
   },
   {
     id: 'q2',
-    question: '지금 가장 걱정되는 것은?',
+    question: '이번 주 가장 어려웠던 점은?',
     type: 'choice',
-    options: ['돈·저축', '집·주거', '일자리', '건강', '인간관계', '걱정 없어요'],
+    options: ['돈·금융 관리', '집·주거 문제', '취업·학업', '외로움·감정', '건강', '특별히 없어요'],
   },
   {
     id: 'q3',
-    question: '이번 주 스스로 해낸 일을 적어주세요',
+    question: '이번 주 스스로 해낸 일이 있다면?',
     type: 'text',
   },
   {
     id: 'q4',
-    question: '다음 주 꼭 해결하고 싶은 것은?',
+    question: '다음 주 나의 목표는?',
     type: 'text',
   },
 ]

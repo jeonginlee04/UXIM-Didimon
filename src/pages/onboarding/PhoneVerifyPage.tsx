@@ -59,7 +59,7 @@ export default function PhoneVerifyPage() {
     if (code.join('').length === CODE_LENGTH) {
       setIsVerified(true)
       setError('')
-      setTimeout(() => navigate('/register/interest'), 700)
+      setTimeout(() => navigate('/register/profile'), 700)
     } else {
       setError(`인증번호 ${CODE_LENGTH}자리를 모두 입력해주세요.`)
     }

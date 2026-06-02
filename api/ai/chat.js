@@ -43,11 +43,11 @@ async function callApi(url, params) {
   }
 }
 
-// 채팅 의도 감지
+// 채팅 의도 감지 — policy_search는 명확한 공고/정책 검색만
 function detectIntent(question) {
-  if (/공고|정책|프로그램|사업|지원 사업|어떤.*지원|찾아|검색|알려줘|있어/.test(question)) return "policy_search";
-  if (/어떻게|방법|절차|순서|단계|하려면|신청 방법|하는 법/.test(question)) return "procedure";
-  if (/힘들|걱정|불안|무서|모르겠|어렵|외로|우울/.test(question)) return "emotional";
+  if (/지원.*공고|공고.*검색|어떤.*정책|정책.*알려|지원.*사업|지원.*받을 수|신청.*어디|어디.*신청|공고.*있|지원.*있나/.test(question)) return "policy_search";
+  if (/어떻게.*하|어떻게.*신청|신청.*방법|어디서.*하|절차|순서|하는 법|하려면|등록.*방법/.test(question)) return "procedure";
+  if (/힘들|걱정돼|불안|무서워|외로|우울|힘들어|두려|답답|슬프/.test(question)) return "emotional";
   return "general";
 }
 
@@ -233,6 +233,24 @@ export default async function handler(req, res) {
   const intent = detectIntent(q);
 
   try {
+    // ── 일반/감정/절차: RAG 스킵, 자유 LLM ──────────────────
+    if (intent !== "policy_search") {
+      try {
+        const model = getGemini().getGenerativeModel({
+          model: "gemini-2.0-flash",
+          systemInstruction: GENERAL_SYSTEM_PROMPT,
+        });
+        const result = await model.generateContent(`[질문]\n${q}`);
+        return res.json({ answer: result.response.text(), sources: [], announcements: [], intent });
+      } catch {
+        return res.json({
+          answer: "지금은 답변을 드리기 어려워요. 잠시 후 다시 시도해주세요.",
+          sources: [], announcements: [], intent,
+        });
+      }
+    }
+
+    // ── policy_search: RAG → 공고 카드 ──────────────────────
     let docs  = [];
     let cards = [];
     let searchMode = "api";
@@ -253,35 +271,18 @@ export default async function handler(req, res) {
       cards = result.cards;
     }
 
-    if (intent === "policy_search" && cards.length === 0) {
+    if (cards.length === 0) {
       const result = await searchByKeyword(q);
       cards = result.cards;
     }
 
     console.log(`[ai/chat] intent=${intent} mode=${searchMode} docs=${docs.length} cards=${cards.length}`);
 
-    const hasCards = intent === "policy_search" && cards.length > 0;
+    const hasCards = cards.length > 0;
 
-    // 문서 없고 일반/감정/절차 → 일반 지식으로 답변
-    if (docs.length === 0 && intent !== "policy_search") {
-      try {
-        const model = getGemini().getGenerativeModel({
-          model: "gemini-2.0-flash",
-          systemInstruction: GENERAL_SYSTEM_PROMPT,
-        });
-        const result = await model.generateContent(`[질문]\n${q}`);
-        return res.json({ answer: result.response.text(), sources: [], announcements: [], intent });
-      } catch {
-        return res.json({
-          answer: "지금은 답변을 드리기 어려워요. 잠시 후 다시 시도해주세요 😊",
-          sources: [], announcements: [], intent,
-        });
-      }
-    }
-
-    if (docs.length === 0) {
+    if (docs.length === 0 && !hasCards) {
       return res.json({
-        answer: "관련 공고를 찾지 못했어요. 다른 키워드로 다시 물어봐주세요 😊",
+        answer: "관련 공고를 찾지 못했어요. 다른 키워드로 다시 물어봐주세요.",
         sources: [], announcements: [], intent,
       });
     }

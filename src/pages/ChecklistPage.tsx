@@ -3,11 +3,12 @@ import { Plus, X, Bell, ChevronLeft, ChevronRight, Sparkles } from "lucide-react
 import { useSearchParams } from "react-router-dom";
 import BottomNav from "../components/common/BottomNav";
 import TodoRecommendModal from "../components/TodoRecommendModal";
+import CategoryIcon from "../components/common/CategoryIcon";
 import pet1 from "../assets/pet1.png";
 import { useTodoStore } from "../store/todoStore";
 import { useAuthStore } from "../store/authStore";
 import { fetchTodoRecommendations } from "../services/aiChatApi";
-import { CATEGORY_LABELS, CATEGORY_ICONS, STATUS_LABELS } from "../types";
+import { CATEGORY_LABELS, STATUS_LABELS } from "../types";
 import type { Category, TodoStatus, Priority, TodoRecommendation } from "../types";
 
 const ALL_CATS: Category[] = [
@@ -347,7 +348,17 @@ export default function ChecklistPage() {
       </div>
 
       <main className="flex-1 px-6 pt-4 pb-24">
-        <p className="text-[14px] font-bold text-[#1f2024] mb-4">투두리스트</p>
+        {/* 펫 + 말풍선 — 상단 */}
+        <div className="flex items-center gap-3 mb-4">
+          <img src={pet1} alt="" className="w-12 h-12 object-contain flex-shrink-0" />
+          <div className="bg-white rounded-2xl rounded-tl-sm px-3 py-2 border border-[#c5c6cc] flex-1 shadow-sm">
+            <p className="text-[11px] font-semibold text-[#1f2024] leading-snug">
+              {progressPct === 100 ? "오늘 할 일을 다 완료했어요!" : turtleMsg}
+            </p>
+          </div>
+        </div>
+
+        <p className="text-[14px] font-bold text-[#1f2024] mb-3">투두리스트</p>
 
         {/* 진행률 */}
         {dayTodos.length > 0 && (
@@ -435,8 +446,8 @@ export default function ChecklistPage() {
                       {todo.content}
                     </p>
                     <div className="flex items-center gap-1.5 mt-0.5">
+                      <CategoryIcon category={todo.category} size={11} className="text-[#8f9098]" />
                       <span className="text-[10px] text-[#8f9098]">
-                        {CATEGORY_ICONS[todo.category]}{" "}
                         {CATEGORY_LABELS[todo.category]}
                       </span>
                       {todo.hasNotification && (
@@ -469,24 +480,6 @@ export default function ChecklistPage() {
           </div>
         )}
 
-        {/* 거북이 말풍선 */}
-        <div className="mt-6 flex items-end gap-3">
-          <div className="relative bg-white rounded-2xl rounded-bl-none px-4 py-3 border border-[#c5c6cc] flex-1 shadow-sm">
-            <p className="text-[12px] font-bold text-[#1f2024] mb-0.5">
-              {progressPct === 100
-                ? "모두 완료!"
-                : "작은 실천이 변화를 만들어요"}
-            </p>
-            <p className="text-[10px] text-[#71727a] leading-relaxed">
-              {turtleMsg}
-            </p>
-          </div>
-          <img
-            src={pet1}
-            alt=""
-            className="w-16 h-16 object-contain flex-shrink-0"
-          />
-        </div>
       </main>
 
       {/* 하단 버튼 */}

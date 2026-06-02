@@ -84,13 +84,13 @@ export default function WeeklyCheckPage() {
               </p>
             </div>
             <div className="bg-[#e0efec] rounded-2xl px-6 py-3 w-full">
-              <p className="text-[#3d8070] font-bold text-sm">+{WEEKLY_CHECK_EXP} EXP 획득! 🎉</p>
+              <p className="text-[#3d8070] font-bold text-sm">+{WEEKLY_CHECK_EXP} EXP 획득!</p>
             </div>
           </div>
 
           {/* AI 피드백 카드 */}
           <div className="bg-white rounded-2xl border border-border-light p-5">
-            <p className="text-[13px] font-bold text-text-basic mb-3">✨ AI 주간 피드백</p>
+            <p className="text-[13px] font-bold text-text-basic mb-3">AI 주간 피드백</p>
 
             {feedbackLoading ? (
               <div className="flex items-center gap-2 py-4 justify-center">
@@ -102,12 +102,12 @@ export default function WeeklyCheckPage() {
                 <p className="text-[13px] text-text-basic leading-relaxed">{feedback.feedback}</p>
 
                 <div className="bg-[#e0efec] rounded-xl px-4 py-3">
-                  <p className="text-[11px] font-semibold text-[#3d8070] mb-1">💪 잘한 점</p>
+                  <p className="text-[11px] font-semibold text-[#3d8070] mb-1">잘한 점</p>
                   <p className="text-[12px] text-[#3d8070]">{feedback.strengths}</p>
                 </div>
 
                 <div className="bg-[#fff1ce] rounded-xl px-4 py-3">
-                  <p className="text-[11px] font-semibold text-[#c9960a] mb-2">📌 다음 주 제안</p>
+                  <p className="text-[11px] font-semibold text-[#c9960a] mb-2">다음 주 제안</p>
                   <ul className="space-y-1">
                     {feedback.suggestions.map((s, i) => (
                       <li key={i} className="text-[12px] text-[#c9960a] flex gap-1.5">

@@ -282,11 +282,15 @@ function getCategoryFromQuestion(question) {
   return "";
 }
 
-// 채팅 의도 감지
+// 채팅 의도 감지 — policy_search는 명확한 공고/정책 검색만
 function detectIntent(question) {
-  if (/공고|정책|프로그램|사업|지원 사업|어떤.*지원|찾아|검색|알려줘|있어/.test(question)) return "policy_search";
-  if (/어떻게|방법|절차|순서|단계|하려면|신청 방법|하는 법/.test(question)) return "procedure";
-  if (/힘들|걱정|불안|무서|모르겠|어렵|외로|우울/.test(question)) return "emotional";
+  // 명확한 공고/정책 검색 요청
+  if (/지원.*공고|공고.*검색|어떤.*정책|정책.*알려|지원.*사업|지원.*받을 수|신청.*어디|어디.*신청|공고.*있|지원.*있나/.test(question)) return "policy_search";
+  // 절차/방법
+  if (/어떻게.*하|어떻게.*신청|신청.*방법|어디서.*하|절차|순서|하는 법|하려면|등록.*방법/.test(question)) return "procedure";
+  // 감정/심리
+  if (/힘들|걱정돼|불안|무서워|외로|우울|힘들어|두려|답답|슬프/.test(question)) return "emotional";
+  // 기본: 자유 LLM 채팅
   return "general";
 }
 
@@ -439,11 +443,24 @@ app.post("/api/ai/chat", async (req, res) => {
   const intent = detectIntent(q);
 
   try {
+    // ── 일반/감정/절차: RAG 스킵, 자유 LLM 직접 답변 ──────────
+    if (intent !== "policy_search") {
+      try {
+        const answer = await callGemini(`[질문]\n${q}`, GENERAL_SYSTEM_PROMPT);
+        return res.json({ answer, sources: [], announcements: [], intent });
+      } catch {
+        return res.json({
+          answer: "지금은 답변을 드리기 어려워요. 잠시 후 다시 시도해주세요.",
+          sources: [], announcements: [], intent,
+        });
+      }
+    }
+
+    // ── policy_search: RAG → 공고 카드 + 요약 답변 ─────────────
     let docs  = [];
     let cards = [];
     let searchMode = "api";
 
-    // 1순위: 벡터 검색
     if (GEMINI_API_KEY && SUPABASE_URL && SUPABASE_KEY) {
       try {
         const embedding = await embedQuestion(q);
@@ -454,43 +471,25 @@ app.post("/api/ai/chat", async (req, res) => {
       }
     }
 
-    // 2순위: 키워드 검색 (폴백)
     if (docs.length === 0) {
       const result = await searchByKeyword(q);
       docs  = result.docs;
       cards = result.cards;
     }
 
-    // policy_search 의도면 온통청년 직접 검색으로 카드 보강
-    if (intent === "policy_search" && cards.length === 0) {
+    if (cards.length === 0) {
       const result = await searchByKeyword(q);
       cards = result.cards;
     }
 
     console.log(`[ai/chat] intent=${intent} mode=${searchMode} docs=${docs.length} cards=${cards.length}`);
 
-    const hasCards = intent === "policy_search" && cards.length > 0;
+    const hasCards = cards.length > 0;
 
-    // 문서 없고 일반/감정/절차 질문 → 일반 지식으로 답변 (RAG 불필요)
-    if (docs.length === 0 && intent !== "policy_search") {
-      try {
-        const answer = await callGemini(`[질문]\n${q}`, GENERAL_SYSTEM_PROMPT);
-        return res.json({ answer, sources: [], announcements: [], intent });
-      } catch {
-        return res.json({
-          answer: "지금은 답변을 드리기 어려워요. 잠시 후 다시 시도해주세요 😊",
-          sources: [], announcements: [], intent,
-        });
-      }
-    }
-
-    // 문서 없고 공고 검색 → 못찾음
-    if (docs.length === 0) {
+    if (docs.length === 0 && !hasCards) {
       return res.json({
-        answer: "관련 공고를 찾지 못했어요. 다른 키워드로 다시 물어봐주세요 😊",
-        sources: [],
-        announcements: [],
-        intent,
+        answer: "관련 공고를 찾지 못했어요. 다른 키워드로 다시 물어봐주세요.",
+        sources: [], announcements: [], intent,
       });
     }
 

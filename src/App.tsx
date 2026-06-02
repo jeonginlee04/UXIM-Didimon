@@ -8,6 +8,7 @@ import LoginPage from './pages/onboarding/LoginPage'
 import RegisterPage from './pages/onboarding/RegisterPage'
 import PhoneVerifyPage from './pages/onboarding/PhoneVerifyPage'
 import InterestSelectPage from './pages/onboarding/InterestSelectPage'
+import ProfileSetupPage from './pages/onboarding/ProfileSetupPage'
 
 // Main
 import SearchPage from './pages/SearchPage'
@@ -47,6 +48,7 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/register/phone" element={<PhoneVerifyPage />} />
+        <Route path="/register/profile" element={<ProfileSetupPage />} />
         <Route path="/register/interest" element={<InterestSelectPage />} />
 
         {/* Search tab */}

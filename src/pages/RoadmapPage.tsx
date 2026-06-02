@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Wallet, Home, Briefcase, BookOpen, Sprout, Heart, Activity, Users } from 'lucide-react'
+import { Wallet, Home, Briefcase, BookOpen, Sprout, Heart, Activity, Users, Bell, ClipboardCheck } from 'lucide-react'
 import BottomNav from '../components/common/BottomNav'
 import { useAuthStore } from '../store/authStore'
 import pet2 from '../assets/pet2.png'
@@ -80,7 +80,7 @@ export default function RoadmapPage() {
               onClick={() => setShowAnnList(true)}
               className="w-full flex items-center px-5 py-3.5 gap-3 text-left active:bg-[#fff5f3] touch-manipulation"
             >
-              <span className="text-base flex-shrink-0">📢</span>
+              <Bell size={14} className="text-[#ff9277] flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] font-bold text-[#ff9277] mb-0.5">마감 임박 공고</p>
                 <p className="text-[12px] text-[#494a50] truncate">{latestAnn.title}</p>
@@ -128,7 +128,7 @@ export default function RoadmapPage() {
                     )}
                   </div>
                   <p className="text-[12px] mb-2" style={{ color }}>
-                    {completed > 0 ? `${completed}/${total} 단계` : '시작전'}
+                    {todoPct >= 80 ? '안정 상태' : todoPct > 0 ? '진행중' : '시작전'}
                   </p>
                   <div className="h-1.5 bg-black/10 rounded-full overflow-hidden">
                     <div
@@ -178,7 +178,7 @@ export default function RoadmapPage() {
             className="bg-[#62ad9e] text-white rounded-2xl p-4 text-left active:opacity-90 touch-manipulation"
           >
             <div className="flex items-center gap-3">
-              <span className="text-2xl">📝</span>
+              <ClipboardCheck size={22} className="text-white/90" />
               <div className="flex-1">
                 <p className="text-sm font-bold">이번 주 점검하기</p>
                 <p className="text-xs text-white/80 mt-0.5">한 주의 자립 여정을 돌아보세요</p>

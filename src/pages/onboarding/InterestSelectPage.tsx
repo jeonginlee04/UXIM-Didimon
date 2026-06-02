@@ -4,16 +4,17 @@ import { ChevronLeft } from 'lucide-react'
 import { useAuthStore, demoUser } from '../../store/authStore'
 import { INTEREST_KEYWORD_LABELS } from '../../types'
 import type { InterestKeyword } from '../../types'
+import CategoryIcon from '../../components/common/CategoryIcon'
 import pet1 from '../../assets/pet1.png'
 
-const keywords: { key: InterestKeyword; emoji: string; desc: string }[] = [
-  { key: 'finance',           emoji: '💰', desc: '자립수당, 청년 저축, 금융 교육' },
-  { key: 'employment',        emoji: '💼', desc: '취업 훈련, 내일배움카드, 구직' },
-  { key: 'housing',           emoji: '🏠', desc: '주거급여, 전세 대출, 공공임대' },
-  { key: 'education',         emoji: '📚', desc: '국가장학금, 학자금 대출, 자격증' },
-  { key: 'mental_health',     emoji: '🧘', desc: '심리상담, 스트레스 관리, 정서 지원' },
-  { key: 'physical_health',   emoji: '🏃', desc: '운동, 건강 검진, 체력 관리' },
-  { key: 'social_connection', emoji: '🤝', desc: '자립준비청년 네트워크, 커뮤니티' },
+const keywords: { key: InterestKeyword; desc: string }[] = [
+  { key: 'finance',           desc: '자립수당, 청년 저축, 금융 교육' },
+  { key: 'employment',        desc: '취업 훈련, 내일배움카드, 구직' },
+  { key: 'housing',           desc: '주거급여, 전세 대출, 공공임대' },
+  { key: 'education',         desc: '국가장학금, 학자금 대출, 자격증' },
+  { key: 'mental_health',     desc: '심리상담, 스트레스 관리, 정서 지원' },
+  { key: 'physical_health',   desc: '운동, 건강 검진, 체력 관리' },
+  { key: 'social_connection', desc: '자립준비청년 네트워크, 커뮤니티' },
 ]
 
 export default function InterestSelectPage() {
@@ -60,7 +61,7 @@ export default function InterestSelectPage() {
         <p className="text-xs text-text-disabled mb-4">최소 1개 이상 선택해주세요 (복수 선택 가능)</p>
 
         <div className="flex flex-col gap-2 flex-1">
-          {keywords.map(({ key, emoji, desc }) => {
+          {keywords.map(({ key, desc }) => {
             const isSelected = selected.includes(key)
             return (
               <button
@@ -72,10 +73,10 @@ export default function InterestSelectPage() {
                     : 'border-border-light bg-white'
                 }`}
               >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 ${
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
                   isSelected ? 'bg-primary/10' : 'bg-bg-subtle'
                 }`}>
-                  {emoji}
+                  <CategoryIcon category={key} size={20} className={isSelected ? 'text-primary' : 'text-text-subtle'} />
                 </div>
                 <div className="flex-1 text-left">
                   <p className={`font-bold text-sm ${isSelected ? 'text-primary' : 'text-text-basic'}`}>
