@@ -138,12 +138,19 @@ export default function SearchPage() {
                 >
                   {/* 썸네일 */}
                   <div
-                    className="relative w-full aspect-[4/3] flex items-center justify-center"
+                    className="relative w-full aspect-[4/3] flex items-center justify-center overflow-hidden"
                     style={{ backgroundColor: catBg }}
                   >
-                    <span className="text-4xl opacity-50">
-                      {THUMB_ICON[ann.category]}
-                    </span>
+                    {ann.posterUrl ? (
+                      <img
+                        src={ann.posterUrl}
+                        alt={ann.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+                      />
+                    ) : (
+                      <span className="text-4xl opacity-50">{THUMB_ICON[ann.category]}</span>
+                    )}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();

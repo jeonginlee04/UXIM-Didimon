@@ -1,15 +1,20 @@
 import { useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import AiChatModal from './AiChatModal'
 import pet1 from '../assets/pet1.png'
 
+// 자체 AI 버튼이 있거나 플로팅 버튼이 불필요한 페이지
+const HIDE_ON_PATHS = ['/checklist']
+
 export default function AiChatButton() {
   const { isAuthenticated, isOnboarded } = useAuthStore()
+  const { pathname } = useLocation()
   const [isOpen, setIsOpen] = useState(false)
-  const [pulsed, setPulsed] = useState(false)  // 펄스 한 번만 표시
+  const [pulsed, setPulsed] = useState(false)
 
-  // 온보딩 전 또는 미인증 상태에서는 렌더하지 않음
   if (!isAuthenticated || !isOnboarded) return null
+  if (HIDE_ON_PATHS.some((p) => pathname.startsWith(p))) return null
 
   return (
     <>

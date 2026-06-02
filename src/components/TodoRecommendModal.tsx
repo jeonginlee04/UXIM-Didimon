@@ -16,6 +16,7 @@ interface Props {
   recommendations: TodoRecommendation[]
   isLoading: boolean
   onAddTodos: (selected: TodoRecommendation[]) => void
+  onMarkDone: (item: TodoRecommendation) => void
 }
 
 export default function TodoRecommendModal({
@@ -24,15 +25,25 @@ export default function TodoRecommendModal({
   recommendations,
   isLoading,
   onAddTodos,
+  onMarkDone,
 }: Props) {
   const [selected, setSelected] = useState<Set<number>>(new Set())
+  const [done, setDone]         = useState<Set<number>>(new Set())
 
-  const toggle = (i: number) =>
+  const toggle = (i: number) => {
+    if (done.has(i)) return // 완료된 항목은 선택 불가
     setSelected((prev) => {
       const next = new Set(prev)
       next.has(i) ? next.delete(i) : next.add(i)
       return next
     })
+  }
+
+  const handleMarkDone = (i: number, item: TodoRecommendation) => {
+    onMarkDone(item)
+    setDone((prev) => new Set([...prev, i]))
+    setSelected((prev) => { const next = new Set(prev); next.delete(i); return next })
+  }
 
   const handleAdd = () => {
     const items = recommendations.filter((_, i) => selected.has(i))
@@ -83,27 +94,32 @@ export default function TodoRecommendModal({
           ) : (
             <div className="space-y-3">
               {recommendations.map((item, i) => {
-                const cat   = item.category as Category
-                const bg    = CATEGORY_BG[cat]    ?? '#f5f5f5'
-                const color = CATEGORY_COLORS[cat] ?? '#444'
-                const icon  = CATEGORY_ICONS[cat]  ?? '📋'
-                const label = CATEGORY_LABELS[cat] ?? cat
+                const cat     = item.category as Category
+                const bg      = CATEGORY_BG[cat]    ?? '#f5f5f5'
+                const color   = CATEGORY_COLORS[cat] ?? '#444'
+                const icon    = CATEGORY_ICONS[cat]  ?? '📋'
+                const label   = CATEGORY_LABELS[cat] ?? cat
                 const isChecked = selected.has(i)
+                const isDone    = done.has(i)
 
                 return (
                   <button
                     key={i}
                     onClick={() => toggle(i)}
                     className={`w-full text-left rounded-2xl border-2 p-4 transition-all touch-manipulation
-                      ${isChecked
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border-light bg-white'}`}
+                      ${isDone
+                        ? 'border-[#e0efec] bg-[#f0faf8] opacity-70'
+                        : isChecked
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border-light bg-white'}`}
                   >
                     <div className="flex items-start gap-3">
                       <div className="flex-shrink-0 mt-0.5">
-                        {isChecked
-                          ? <CheckCircle2 size={20} className="text-primary" />
-                          : <Circle size={20} className="text-border-default" />
+                        {isDone
+                          ? <CheckCircle2 size={20} className="text-[#3d8070]" />
+                          : isChecked
+                            ? <CheckCircle2 size={20} className="text-primary" />
+                            : <Circle size={20} className="text-border-default" />
                         }
                       </div>
                       <div className="flex-1 min-w-0">
@@ -118,8 +134,23 @@ export default function TodoRecommendModal({
                             {DIFFICULTY_LABEL[item.difficulty]}
                           </span>
                         </div>
-                        <p className="text-[14px] font-bold text-text-basic leading-snug">{item.title}</p>
-                        <p className="text-[12px] text-text-subtle mt-1 leading-relaxed">{item.reason}</p>
+                        <p className={`text-[14px] font-bold leading-snug ${isDone ? 'line-through text-text-subtle' : 'text-text-basic'}`}>
+                          {item.title}
+                        </p>
+                        {!isDone && (
+                          <p className="text-[12px] text-text-subtle mt-1 leading-relaxed">{item.reason}</p>
+                        )}
+                        {!isDone && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleMarkDone(i, item); }}
+                            className="mt-2 text-[11px] font-semibold text-[#3d8070] bg-[#e0efec] px-3 py-1 rounded-full touch-manipulation active:opacity-70"
+                          >
+                            이미 완료됨 ✓
+                          </button>
+                        )}
+                        {isDone && (
+                          <p className="text-[11px] text-[#3d8070] mt-1">완료로 기록했어요!</p>
+                        )}
                       </div>
                     </div>
                   </button>

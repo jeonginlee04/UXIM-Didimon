@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
 import BottomNav from '../components/common/BottomNav'
+import ActivityHistoryTab from './mypage/ActivityHistoryTab'
 import { useAuthStore } from '../store/authStore'
 import { EXP_PER_LEVEL, getLevelProgress } from '../types'
 
@@ -26,9 +28,12 @@ function UserAvatar() {
   )
 }
 
+type Tab = 'profile' | 'activity'
+
 export default function MyPage() {
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
+  const [activeTab, setActiveTab] = useState<Tab>('profile')
 
   const level = user?.level ?? 1
   const exp = user?.exp ?? 0
@@ -42,12 +47,32 @@ export default function MyPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white pb-20">
-      {/* 헤더 */}
-      <div className="h-14 flex items-center justify-center bg-white">
-        <h1 className="text-[14px] font-bold text-[#1f2024]">마이 페이지</h1>
+      {/* 헤더 + 탭 */}
+      <div className="bg-white sticky top-0 z-10">
+        <div className="h-14 flex items-center justify-center">
+          <h1 className="text-[14px] font-bold text-[#1f2024]">마이 페이지</h1>
+        </div>
+        <div className="flex border-b border-[#e8e9f1]">
+          {(['profile', 'activity'] as Tab[]).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 py-3 text-[13px] font-semibold transition-colors touch-manipulation
+                ${activeTab === tab
+                  ? 'text-[#62ad9e] border-b-2 border-[#62ad9e]'
+                  : 'text-[#8f9098]'}`}
+            >
+              {tab === 'profile' ? '프로필' : '활동 이력'}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* 프로필 */}
+      {/* 활동 이력 탭 */}
+      {activeTab === 'activity' && <ActivityHistoryTab />}
+
+      {/* 프로필 탭 */}
+      {activeTab === 'profile' && <>
       <div className="flex flex-col items-center py-6">
         <div className="relative mb-3">
           <UserAvatar />
@@ -119,6 +144,7 @@ export default function MyPage() {
       <div className="py-4 text-center text-[10px] text-[#8f9098]">
         디딤온 v0.1.0
       </div>
+      </>}
 
       <BottomNav />
     </div>

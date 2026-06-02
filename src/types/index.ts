@@ -235,10 +235,22 @@ export const CATEGORY_ICONS: Record<Category, string> = {
   housing:          '🏠',
   employment:       '💼',
   education:        '📚',
-  culture:          '🎨',
-  mental_health:    '🧘',
+  culture:          '🌱',
+  mental_health:    '💙',
   physical_health:  '🏃',
   social_connection:'🤝',
+}
+
+// lucide-react 아이콘 이름 (KRDS/Apple 스타일 참고)
+export const CATEGORY_LUCIDE_NAME: Record<Category, string> = {
+  finance:          'Wallet',
+  housing:          'Home',
+  employment:       'Briefcase',
+  education:        'BookOpen',
+  culture:          'Sprout',
+  mental_health:    'Heart',
+  physical_health:  'Activity',
+  social_connection:'Users',
 }
 
 export const STATUS_LABELS: Record<TodoStatus, string> = {
@@ -260,25 +272,24 @@ export const getLevelProgress = (exp: number) => exp % EXP_PER_LEVEL
 export const WEEKLY_CHECK_QUESTIONS: WeeklyCheckQuestion[] = [
   {
     id: 'q1',
-    question: '이번 주 할 일을 몇 개 완료했나요?',
+    question: '이번 주 자립에서 가장 어려웠던 순간은?',
     type: 'choice',
-    options: ['0개', '1~2개', '3~4개', '5개 이상'],
+    options: ['금전 관리', '주거 문제', '취업·학업', '외로움·감정', '어려움 없었어요'],
   },
   {
     id: 'q2',
-    question: '이번 주 가장 잘 한 일은 무엇인가요?',
-    type: 'text',
+    question: '지금 가장 걱정되는 것은?',
+    type: 'choice',
+    options: ['돈·저축', '집·주거', '일자리', '건강', '인간관계', '걱정 없어요'],
   },
   {
     id: 'q3',
-    question: '다음 주에 가장 집중할 영역은?',
-    type: 'choice',
-    options: ['금융', '주거', '취업', '학업'],
+    question: '이번 주 스스로 해낸 일을 적어주세요',
+    type: 'text',
   },
   {
     id: 'q4',
-    question: '이번 주 나의 자립 노력 점수는?',
-    type: 'choice',
-    options: ['⭐ 1점', '⭐⭐ 2점', '⭐⭐⭐ 3점', '⭐⭐⭐⭐ 4점', '⭐⭐⭐⭐⭐ 5점'],
+    question: '다음 주 꼭 해결하고 싶은 것은?',
+    type: 'text',
   },
 ]

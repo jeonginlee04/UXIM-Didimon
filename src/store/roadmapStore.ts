@@ -12,6 +12,7 @@ interface RoadmapState {
 
   toggleExpand: (id: string) => void
   addItem: (item: Omit<RoadmapItem, 'id'>) => void
+  updateItem: (id: string, patch: Partial<Pick<RoadmapItem, 'title' | 'description'>>) => void
   getByCategory: (category: RoadmapCategory) => RoadmapItem[]
   getCategoryProgress: (category: RoadmapCategory) => { completed: number; total: number; pct: number }
 
@@ -53,6 +54,13 @@ export const useRoadmapStore = create<RoadmapState>()(
         const newItem: RoadmapItem = { ...itemData, id: generateId() }
         set((state) => ({ items: [...state.items, newItem] }))
       },
+
+      updateItem: (id, patch) =>
+        set((state) => ({
+          items: state.items.map((item) =>
+            item.id === id ? { ...item, ...patch } : item
+          ),
+        })),
 
       getByCategory: (category) =>
         get().items.filter((item) => item.category === category).sort((a, b) => a.order - b.order),

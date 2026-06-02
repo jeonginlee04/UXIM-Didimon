@@ -56,10 +56,19 @@ export default function AnnouncementDetailPage() {
     <div className="min-h-screen flex flex-col bg-white">
       {/* Hero 이미지 영역 */}
       <div
-        className="relative w-full flex-shrink-0 flex items-center justify-center"
+        className="relative w-full flex-shrink-0 flex items-center justify-center overflow-hidden"
         style={{ height: '253px', backgroundColor: thumbBg }}
       >
-        <span className="text-[88px] opacity-30">{THUMB_ICON[ann.category]}</span>
+        {ann.posterUrl ? (
+          <img
+            src={ann.posterUrl}
+            alt={ann.title}
+            className="w-full h-full object-cover"
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+          />
+        ) : (
+          <span className="text-[88px] opacity-30">{THUMB_ICON[ann.category]}</span>
+        )}
 
         {/* 뒤로가기 */}
         <button

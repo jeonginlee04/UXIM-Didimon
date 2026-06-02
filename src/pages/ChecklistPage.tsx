@@ -218,6 +218,17 @@ export default function ChecklistPage() {
     });
   };
 
+  const handleMarkDoneRecommendation = (item: TodoRecommendation) => {
+    addTodo({
+      content: item.title,
+      category: item.category,
+      dueDate: selectedDate,
+      status: "done",
+      priority: item.difficulty === "hard" ? "high" : item.difficulty === "medium" ? "medium" : "low",
+      hasNotification: false,
+    });
+  };
+
   const handlePickerDateSelect = (year: number, month: number, day: number) => {
     const target = new Date(year, month, day);
     const ds = toDateStr(target);
@@ -502,6 +513,7 @@ export default function ChecklistPage() {
         recommendations={aiRecommendations}
         isLoading={isAiLoading}
         onAddTodos={handleAddRecommendedTodos}
+        onMarkDone={handleMarkDoneRecommendation}
       />
 
       {/* 추가 모달 */}

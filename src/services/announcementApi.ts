@@ -258,6 +258,7 @@ export async function fetchAllAnnouncements(): Promise<Announcement[]> {
       detailUrl: aplyUrl || undefined,
       refUrl1: refUrl1 || undefined,
       refUrl2: refUrl2 || undefined,
+      posterUrl: s(item, 'plcyPic', 'repImgUrl', 'thumbNailImgUrl', 'imgUrl') || undefined,
     })
   })
 

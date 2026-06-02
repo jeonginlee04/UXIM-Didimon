@@ -191,17 +191,31 @@ const CHAT_SYSTEM_PROMPT = `
 너는 '디딤온'의 AI 도우미 '디디몬'이야. 보호종료 자립준비청년(18~29세)의 자립을 따뜻하게 돕는 역할을 해.
 
 [답변 원칙]
-1. 반드시 아래에 제공된 [참고 문서] 내용만을 근거로 답변해.
-2. 문서에 없는 정보는 절대 만들어내지 말고, "현재 제공된 정보에서는 찾을 수 없어요. 관련 기관에 직접 문의해보는 걸 추천해요 😊"라고 안내해.
-3. 지원사업을 안내할 때는:
-   - 지원 대상 (누가 받을 수 있는지)
-   - 지원 내용 (얼마나, 어떤 혜택인지)
-   - 신청 방법 (어디서, 어떻게 신청하는지)
-   - 마감일 또는 신청 기간 (있다면)
-4. 말투는 따뜻하고 친근하게. 대화하듯 자연스럽게.
-5. 답변은 200~400자 내외로. 필요하면 ■ 또는 • 로 구조화해줘.
-6. 감정적 어려움을 표현할 때는 먼저 공감하고, 도움받을 수 있는 자원을 안내해줘.
-7. 마지막에는 격려 문구를 자연스럽게 붙여줘.
+1. 아래에 제공된 [참고 문서] 내용을 주요 근거로 답변해.
+2. 문서에 없는 내용은 자립준비청년에게 유용한 일반적 사실을 바탕으로 보완해줘. 단, 불확실한 내용은 "정확한 내용은 관련 기관에 문의해보세요 😊"라고 안내해.
+3. 지원사업 안내 시: 지원 대상·내용·신청 방법·마감일을 포함해줘.
+4. 말투는 따뜻하고 친근하게.
+5. 답변은 150~350자 내외. 필요하면 ■ 또는 • 로 구조화해줘.
+6. 마지막에는 격려 문구를 자연스럽게 붙여줘.
+`.trim();
+
+const GENERAL_SYSTEM_PROMPT = `
+너는 '디딤온'의 AI 도우미 '디디몬'이야. 보호종료 자립준비청년(18~29세)의 자립을 따뜻하게 돕는 역할을 해.
+
+[답변 원칙]
+1. 자립준비청년에게 필요한 실질적인 정보와 따뜻한 공감을 제공해줘.
+2. 전입신고·건강보험·주민등록·통장개설·임대계약 등 자립 생활 전반에 대해 구체적 절차와 팁을 안내해줘.
+3. 감정적 어려움엔 먼저 공감하고, 청년 정신건강 지원(마음이음, 청년마음건강지원사업 등)을 안내해줘.
+4. 모르는 내용은 "정확한 내용은 관련 기관(주민센터, 복지로, 고용24 등)에 문의해보세요 😊"라고 안내해.
+5. 말투는 따뜻하고 친근하게.
+6. 답변은 150~350자. 필요하면 • 로 단계를 구조화해줘.
+7. 마지막에는 짧은 격려 문구.
+`.trim();
+
+const CARD_SUMMARY_PROMPT = `
+너는 '디딤온'의 AI 도우미 '디디몬'이야.
+아래 [참고 문서]를 바탕으로, 관련 공고를 카드로 따로 보여줄 예정이니 텍스트 답변은 핵심만 1~2문장으로 짧게 요약해줘.
+"관련 공고를 아래에 정리해드릴게요! " 로 시작하고 핵심 안내 1문장만 덧붙여줘.
 `.trim();
 
 export default async function handler(req, res) {
@@ -244,14 +258,31 @@ export default async function handler(req, res) {
       cards = result.cards;
     }
 
-    console.log(`[ai/chat] intent=${intent} mode=${searchMode} docs=${docs.length}`);
+    console.log(`[ai/chat] intent=${intent} mode=${searchMode} docs=${docs.length} cards=${cards.length}`);
+
+    const hasCards = intent === "policy_search" && cards.length > 0;
+
+    // 문서 없고 일반/감정/절차 → 일반 지식으로 답변
+    if (docs.length === 0 && intent !== "policy_search") {
+      try {
+        const model = getGemini().getGenerativeModel({
+          model: "gemini-2.0-flash",
+          systemInstruction: GENERAL_SYSTEM_PROMPT,
+        });
+        const result = await model.generateContent(`[질문]\n${q}`);
+        return res.json({ answer: result.response.text(), sources: [], announcements: [], intent });
+      } catch {
+        return res.json({
+          answer: "지금은 답변을 드리기 어려워요. 잠시 후 다시 시도해주세요 😊",
+          sources: [], announcements: [], intent,
+        });
+      }
+    }
 
     if (docs.length === 0) {
       return res.json({
-        answer: "죄송해요, 관련 정보를 찾지 못했어요. 더 구체적으로 질문해주시면 도움이 될 것 같아요 😊",
-        sources: [],
-        announcements: [],
-        intent,
+        answer: "관련 공고를 찾지 못했어요. 다른 키워드로 다시 물어봐주세요 😊",
+        sources: [], announcements: [], intent,
       });
     }
 
@@ -271,9 +302,11 @@ export default async function handler(req, res) {
         ? `\n\n사용자의 관심 분야: ${userCategory.join(", ")}`
         : "";
 
+      const systemPrompt = hasCards ? CARD_SUMMARY_PROMPT : CHAT_SYSTEM_PROMPT;
+
       const model = getGemini().getGenerativeModel({
         model: "gemini-2.0-flash",
-        systemInstruction: CHAT_SYSTEM_PROMPT,
+        systemInstruction: systemPrompt,
       });
 
       const result = await model.generateContent(
@@ -298,7 +331,7 @@ export default async function handler(req, res) {
     res.json({
       answer,
       sources,
-      announcements: intent === "policy_search" ? cards.slice(0, 3) : [],
+      announcements: hasCards ? cards.slice(0, 3) : [],
       intent,
     });
   } catch (err) {
