@@ -105,17 +105,22 @@ export default function RoadmapPage() {
           <h2 className="text-[14px] font-bold text-[#1f2024] mb-3">분야별 현황</h2>
           <div className="grid grid-cols-2 gap-3">
             {shownCats.map((cat) => {
-              const { completed, total } = getCategoryProgress(cat)
               const todoPct = getProgress(cat)
               const color = ROADMAP_CATEGORY_COLORS[cat]
-              const bg = ROADMAP_CATEGORY_BG[cat]
+
+              // 상태별 색상 정의
+              const statusInfo =
+                todoPct >= 80
+                  ? { label: '안정 상태', textColor: '#1a7a4a', bgColor: '#d1fae5', barColor: '#22c55e' }
+                  : todoPct > 0
+                  ? { label: '진행중',   textColor: '#1e40af', bgColor: '#dbeafe', barColor: '#3b82f6' }
+                  : { label: '시작전',   textColor: '#92400e', bgColor: '#fef3c7', barColor: '#f59e0b' }
 
               return (
                 <button
                   key={cat}
                   onClick={() => navigate(`/roadmap/category/${cat}`)}
-                  className="rounded-2xl p-4 text-left active:opacity-80 touch-manipulation"
-                  style={{ backgroundColor: bg }}
+                  className="rounded-2xl p-4 text-left active:opacity-80 touch-manipulation bg-white border border-[#e8e9f1]"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-[14px] font-bold text-[#1f2024]">
@@ -123,17 +128,20 @@ export default function RoadmapPage() {
                     </p>
                     {CAT_ICON[cat] && (
                       <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}20` }}>
-                        {(() => { const Icon = CAT_ICON[cat]; return <Icon size={16} className="" style={{ color }} /> })()}
+                        {(() => { const Icon = CAT_ICON[cat]; return <Icon size={16} style={{ color }} /> })()}
                       </div>
                     )}
                   </div>
-                  <p className="text-[12px] mb-2" style={{ color }}>
-                    {todoPct >= 80 ? '안정 상태' : todoPct > 0 ? '진행중' : '시작전'}
-                  </p>
-                  <div className="h-1.5 bg-black/10 rounded-full overflow-hidden">
+                  <span
+                    className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mb-2"
+                    style={{ color: statusInfo.textColor, backgroundColor: statusInfo.bgColor }}
+                  >
+                    {statusInfo.label}
+                  </span>
+                  <div className="h-1.5 bg-[#e8e9f1] rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-500"
-                      style={{ width: `${todoPct}%`, backgroundColor: color }}
+                      style={{ width: `${todoPct}%`, backgroundColor: statusInfo.barColor }}
                     />
                   </div>
                 </button>
