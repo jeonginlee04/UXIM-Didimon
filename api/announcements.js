@@ -5,7 +5,7 @@ const DATA_GO_KR_KEY = process.env.DATA_GO_KR_KEY ||
 const YOUTH_KEY = process.env.YOUTH_KEY;
 const WELFARE_KEY = process.env.WELFARE_KEY ||
   "758954077e0c61c99e6fa5f2cc45de5a53723e91674d12ab64e72fcf67c93236";
-const API_TIMEOUT = 5000;
+const API_TIMEOUT = 3000;
 
 function isValidJson(data) {
   if (data === null || data === undefined) return false;

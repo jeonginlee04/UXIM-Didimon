@@ -6,7 +6,7 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const SUPABASE_URL   = process.env.SUPABASE_URL;
 const SUPABASE_KEY   = process.env.SUPABASE_KEY;
 const YOUTH_KEY      = process.env.YOUTH_KEY;
-const API_TIMEOUT    = 5000;
+const API_TIMEOUT    = 3000;
 
 let _gemini   = null;
 let _supabase = null;
