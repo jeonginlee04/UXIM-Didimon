@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronDown, ChevronUp, ExternalLink, Pencil, X } from 'lucide-react'
+import { ChevronLeft, ChevronDown, ChevronUp, ExternalLink, Pencil, X, CheckCircle2, Circle, Plus } from 'lucide-react'
 import { useRoadmapStore } from '../../store/roadmapStore'
 import { useTodoStore } from '../../store/todoStore'
 import { useAnnouncementStore } from '../../store/announcementStore'
@@ -17,7 +17,9 @@ export default function CategoryDetailPage() {
   const navigate = useNavigate()
   const category = cat as RoadmapCategory
 
-  const { getByCategory, getCategoryProgress, toggleExpand, updateItem } = useRoadmapStore()
+  const { getByCategory, getCategoryProgress, toggleExpand, updateItem, addTodoToItem } = useRoadmapStore()
+  const { todos, getProgress, changeStatus, addTodo } = useTodoStore()
+  const { announcements } = useAnnouncementStore()
 
   const [editingItem, setEditingItem] = useState<RoadmapItem | null>(null)
   const [editTitle, setEditTitle]     = useState('')
@@ -34,8 +36,26 @@ export default function CategoryDetailPage() {
     updateItem(editingItem.id, { title: editTitle.trim(), description: editDesc.trim() })
     setEditingItem(null)
   }
-  const { todos, getProgress } = useTodoStore()
-  const { announcements } = useAnnouncementStore()
+
+  // 행동제안 추가: 기존 ID 없으면 새로 생성하고 item에 연결
+  const handleAddSuggestionTodo = (itemId: string, content: string) => {
+    // 이미 동일 내용+동일 roadmapItem 연결 todo 있으면 스킵
+    const exists = todos.some(
+      (t) => t.content === content && t.linkedRoadmapItemId === itemId
+    )
+    if (exists) return
+    // generateId 시나리오: addTodo는 void이므로 내부 ID를 직접 읽을 수 없음
+    // → addTodo 호출 후 맨 앞 todo ID 로 연결
+    addTodo({
+      content,
+      category: category as Category,
+      dueDate: '',
+      status: 'todo',
+      priority: 'medium',
+      hasNotification: false,
+      linkedRoadmapItemId: itemId,
+    })
+  }
 
   const items = getByCategory(category)
   const { completed, total } = getCategoryProgress(category)
@@ -147,18 +167,56 @@ export default function CategoryDetailPage() {
                       <div className="mt-3">
                         <p className="text-[11px] font-bold text-[#71727a] mb-2">행동 제안</p>
                         <div className="flex flex-col gap-2">
-                          {itemTodos.map((todo) => (
-                            <div key={todo.id} className="flex items-center gap-2 bg-[#f8f9fe] rounded-xl px-3 py-2.5">
-                              <p className="text-[12px] flex-1 text-[#1f2024]">{todo.content}</p>
-                              <button
-                                onClick={() => navigate(`/checklist?content=${encodeURIComponent(todo.content)}&category=${encodeURIComponent(category)}`)}
-                                className="text-[10px] font-bold text-[#62ad9e] bg-[#e0efec] rounded-lg px-2.5 py-1 flex-shrink-0 touch-manipulation"
+                          {itemTodos.map((todo) => {
+                            const isDone = todo.status === 'done'
+                            // 같은 내용으로 새로 추가된 todo가 있으면 그걸 우선 확인
+                            const linked = todos.find(
+                              (t) => t.content === todo.content && t.linkedRoadmapItemId === item.id && t.id !== todo.id
+                            )
+                            const effectiveDone = isDone || linked?.status === 'done'
+                            return (
+                              <div
+                                key={todo.id}
+                                className={`flex items-center gap-2 rounded-xl px-3 py-2.5 ${
+                                  effectiveDone ? 'bg-[#e0efec]' : 'bg-[#f8f9fe]'
+                                }`}
                               >
-                                투두 추가
-                              </button>
-                            </div>
-                          ))}
+                                {effectiveDone
+                                  ? <CheckCircle2 size={15} className="text-[#3d8070] flex-shrink-0" />
+                                  : <Circle size={15} className="text-[#c5c6cc] flex-shrink-0" />
+                                }
+                                <p className={`text-[12px] flex-1 ${
+                                  effectiveDone ? 'line-through text-[#71727a]' : 'text-[#1f2024]'
+                                }`}>
+                                  {todo.content}
+                                </p>
+                                {effectiveDone ? (
+                                  <span className="text-[10px] font-bold text-[#3d8070] bg-[#c4e5de] rounded-lg px-2.5 py-1 flex-shrink-0">
+                                    완료됨
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={() => changeStatus(todo.id, 'done')}
+                                    className="text-[10px] font-bold text-[#62ad9e] bg-[#e0efec] rounded-lg px-2.5 py-1 flex-shrink-0 touch-manipulation"
+                                  >
+                                    완료
+                                  </button>
+                                )}
+                              </div>
+                            )
+                          })}
                         </div>
+                      </div>
+                    )}
+                    {/* itemTodos 없을 때 직접 추가 */}
+                    {itemTodos.length === 0 && (
+                      <div className="mt-3">
+                        <button
+                          onClick={() => handleAddSuggestionTodo(item.id, item.title)}
+                          className="flex items-center gap-1.5 text-[11px] font-bold text-[#62ad9e] bg-[#e0efec] rounded-lg px-3 py-1.5 touch-manipulation"
+                        >
+                          <Plus size={12} /> 투두에 추가
+                        </button>
                       </div>
                     )}
 

@@ -401,7 +401,9 @@ export default function ChecklistPage() {
         {/* 투두 목록 */}
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-2">
-            <span className="text-4xl">📋</span>
+            <div className="w-12 h-12 rounded-full bg-[#e8e9f1] flex items-center justify-center">
+              <Plus size={22} className="text-[#8f9098]" />
+            </div>
             <p className="text-sm text-[#71727a] text-center">
               {dayTodos.length === 0
                 ? "이 날은 할 일이 없어요."
@@ -547,7 +549,7 @@ export default function ChecklistPage() {
                 >
                   {ALL_CATS.map((cat) => (
                     <option key={cat} value={cat}>
-                      {CATEGORY_ICONS[cat]} {CATEGORY_LABELS[cat]}
+                      {CATEGORY_LABELS[cat]}
                     </option>
                   ))}
                 </select>
@@ -561,9 +563,9 @@ export default function ChecklistPage() {
                   }
                   className="input-field text-sm"
                 >
-                  <option value="high">🔴 높음</option>
-                  <option value="medium">🟡 보통</option>
-                  <option value="low">⚪ 낮음</option>
+                  <option value="high">높음</option>
+                  <option value="medium">보통</option>
+                  <option value="low">낮음</option>
                 </select>
               </div>
               <div>
@@ -653,7 +655,7 @@ export default function ChecklistPage() {
                 >
                   {ALL_CATS.map((cat) => (
                     <option key={cat} value={cat}>
-                      {CATEGORY_ICONS[cat]} {CATEGORY_LABELS[cat]}
+                      {CATEGORY_LABELS[cat]}
                     </option>
                   ))}
                 </select>
@@ -667,9 +669,9 @@ export default function ChecklistPage() {
                   }
                   className="input-field text-sm"
                 >
-                  <option value="high">🔴 높음</option>
-                  <option value="medium">🟡 보통</option>
-                  <option value="low">⚪ 낮음</option>
+                  <option value="high">높음</option>
+                  <option value="medium">보통</option>
+                  <option value="low">낮음</option>
                 </select>
               </div>
               <div>
