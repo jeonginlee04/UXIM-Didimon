@@ -71,10 +71,6 @@ export default function AiChatModal({ isOpen, onClose }: Props) {
       const content =
         code === 'RATE_LIMITED'
           ? '요청이 너무 많아요. 잠시 후 다시 시도해주세요 ⏳'
-          : code === 'GEMINI_API_DISABLED'
-          ? 'Gemini API가 활성화되지 않았어요.\naistudio.google.com/app/apikey 에서 새 API 키를 발급하거나, Google Cloud Console에서 Generative Language API를 활성화해주세요 🔑'
-          : code === 'INVALID_API_KEY'
-          ? 'Gemini API 키가 유효하지 않아요. .env 파일의 GEMINI_API_KEY를 확인해주세요 🔑'
           : '죄송해요, 잠시 오류가 발생했어요. 다시 시도해주세요 😢'
 
       setMessages((prev) => [

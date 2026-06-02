@@ -243,16 +243,7 @@ export default async function handler(req, res) {
     try {
       answer = await callGemini(q, docs, userCategory);
     } catch (genErr) {
-      const genMsg = genErr.message ?? "";
-      console.warn("[ai/chat] Gemini 생성 실패 → 문서 요약 폴백:", genMsg.slice(0, 80));
-
-      if (
-        genMsg.includes("SERVICE_DISABLED") ||
-        genMsg.includes("API_KEY_SERVICE_BLOCKED") ||
-        genMsg.includes("403")
-      ) {
-        return res.status(403).json({ error: "GEMINI_API_DISABLED" });
-      }
+      console.warn("[ai/chat] Gemini 생성 실패 → 키워드 검색 결과 직접 반환:", (genErr.message ?? "").slice(0, 80));
 
       const fallback = docs
         .slice(0, 3)
@@ -272,21 +263,8 @@ export default async function handler(req, res) {
     const msg = err.message ?? "";
     console.error("[ai/chat] 오류:", msg);
 
-    if (msg.includes("환경변수")) {
-      return res.status(503).json({ error: `서버 설정 오류: ${msg}` });
-    }
     if (msg.includes("RESOURCE_EXHAUSTED") || msg.includes("quota") || err.status === 429) {
       return res.status(429).json({ error: "RATE_LIMITED" });
-    }
-    if (
-      msg.includes("API_KEY_SERVICE_BLOCKED") ||
-      msg.includes("SERVICE_DISABLED") ||
-      msg.includes("has not been used in project") ||
-      msg.includes("API_KEY_INVALID") ||
-      msg.includes("invalid api key") ||
-      err.status === 403
-    ) {
-      return res.status(403).json({ error: "GEMINI_API_DISABLED" });
     }
     res.status(500).json({ error: "AI 응답 생성 중 오류가 발생했습니다." });
   }
