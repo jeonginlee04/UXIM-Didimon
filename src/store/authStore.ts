@@ -35,8 +35,8 @@ export const useAuthStore = create<AuthState>()(
       addExp: (amount) =>
         set((state) => {
           if (!state.user) return state
-          const newExp = state.user.exp + amount
-          const newLevel = getLevel(newExp)
+          const newExp = Math.max(0, state.user.exp + amount)
+          const newLevel = Math.max(1, getLevel(newExp))
           return { user: { ...state.user, exp: newExp, level: newLevel } }
         }),
     }),

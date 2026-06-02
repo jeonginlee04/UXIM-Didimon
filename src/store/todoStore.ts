@@ -31,7 +31,6 @@ export const useTodoStore = create<TodoState>()(
           id: generateId(),
           createdAt: getTodayString(),
         };
-
         set((state) => ({
           todos: [newTodo, ...state.todos],
         }));
@@ -63,7 +62,16 @@ export const useTodoStore = create<TodoState>()(
       },
 
       changeStatus: (id, status) => {
-        get().updateTodo(id, { status });
+        set((state) => ({
+          todos: state.todos.map((todo) => {
+            if (todo.id !== id) return todo;
+            return {
+              ...todo,
+              status,
+              completedAt: status === "done" ? getTodayString() : undefined,
+            };
+          }),
+        }));
       },
 
       getTodosByCategory: (category) => {
@@ -94,6 +102,13 @@ export const useTodoStore = create<TodoState>()(
     }),
     {
       name: "didim-todos",
+      version: 1,
+      migrate: (persisted: any) => {
+        const existing: Todo[] = persisted?.todos ?? []
+        const existingIds = new Set(existing.map((t) => t.id))
+        const newMockTodos = mockTodos.filter((t) => !existingIds.has(t.id))
+        return { ...persisted, todos: [...existing, ...newMockTodos] }
+      },
     },
   ),
 );

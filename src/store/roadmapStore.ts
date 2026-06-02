@@ -8,14 +8,16 @@ interface RoadmapState {
   dailyQuests: DailyQuest[]
   weeklyCheck: WeeklyCheck | null
   lastWeeklyCheckDate: string | null
+  lastQuestResetDate: string | null
 
   toggleExpand: (id: string) => void
   addItem: (item: Omit<RoadmapItem, 'id'>) => void
   getByCategory: (category: RoadmapCategory) => RoadmapItem[]
   getCategoryProgress: (category: RoadmapCategory) => { completed: number; total: number; pct: number }
 
-  completeQuest: (id: string, onExpGain: (exp: number) => void) => void
+  toggleQuest: (id: string, onExpChange: (exp: number) => void) => void
   resetDailyQuests: () => void
+  checkAndResetDailyQuests: () => void
 
   saveWeeklyCheck: (answers: Record<string, string>) => void
   canDoWeeklyCheck: () => boolean
@@ -38,6 +40,7 @@ export const useRoadmapStore = create<RoadmapState>()(
       dailyQuests: mockDailyQuests,
       weeklyCheck: null,
       lastWeeklyCheckDate: null,
+      lastQuestResetDate: null,
 
       toggleExpand: (id) =>
         set((state) => ({
@@ -62,22 +65,33 @@ export const useRoadmapStore = create<RoadmapState>()(
         return { completed, total, pct: Math.round((completed / total) * 100) }
       },
 
-      completeQuest: (id, onExpGain) =>
-        set((state) => {
-          const quest = state.dailyQuests.find((q) => q.id === id)
-          if (!quest || quest.isCompleted) return state
-          onExpGain(quest.expReward)
-          return {
-            dailyQuests: state.dailyQuests.map((q) =>
-              q.id === id ? { ...q, isCompleted: true } : q
-            ),
-          }
-        }),
+      toggleQuest: (id, onExpChange) => {
+        const quest = get().dailyQuests.find((q) => q.id === id)
+        if (!quest) return
+        onExpChange(quest.isCompleted ? -quest.expReward : quest.expReward)
+        set((state) => ({
+          dailyQuests: state.dailyQuests.map((q) =>
+            q.id === id ? { ...q, isCompleted: !q.isCompleted } : q
+          ),
+        }))
+      },
 
       resetDailyQuests: () =>
         set((state) => ({
           dailyQuests: state.dailyQuests.map((q) => ({ ...q, isCompleted: false })),
+          lastQuestResetDate: new Date().toISOString().split('T')[0],
         })),
+
+      checkAndResetDailyQuests: () => {
+        const today = new Date().toISOString().split('T')[0]
+        const { lastQuestResetDate } = get()
+        if (lastQuestResetDate !== today) {
+          set((state) => ({
+            dailyQuests: state.dailyQuests.map((q) => ({ ...q, isCompleted: false })),
+            lastQuestResetDate: today,
+          }))
+        }
+      },
 
       saveWeeklyCheck: (answers) => {
         const now = new Date().toISOString()
@@ -97,6 +111,16 @@ export const useRoadmapStore = create<RoadmapState>()(
         return getWeekStart() !== lastWeeklyCheckDate
       },
     }),
-    { name: 'didim-roadmap' }
+    {
+      name: 'didim-roadmap',
+      version: 3,
+      migrate: () => ({
+        items: mockRoadmapItems,
+        dailyQuests: mockDailyQuests,
+        weeklyCheck: null,
+        lastWeeklyCheckDate: null,
+        lastQuestResetDate: null,
+      }),
+    }
   )
 )

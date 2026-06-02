@@ -106,7 +106,7 @@ app.get("/api/housing", async (req, res) => {
 
 // 온통청년 — 카테고리별 병렬 수집 후 plcyNo 기준 중복 제거
 const YOUTH_CATEGORIES = ["일자리", "주거", "교육", "금융", "복지문화"];
-const YOUTH_PAGE_SIZE  = 40; // 카테고리당 최대 40건 → 최대 200건
+const YOUTH_PAGE_SIZE  = 100; // 카테고리당 최대 100건 → 최대 500건
 
 async function fetchAllYouthPolicies() {
   const results = await Promise.allSettled(
@@ -146,29 +146,18 @@ app.get("/api/youth", async (req, res) => {
 });
 
 // ✅ 전체 공고 한번에 가져오기
+// data.go.kr API(보조금24·복지서비스·공공임대)는 포털에서 정확한 endpoint URL과
+// serviceKey 승인을 받은 후 아래 형식으로 추가:
+//   callApi("https://api.odcloud.kr/api/{dataset_id}/v1/{resource_id}", { serviceKey, page, perPage })
 app.get("/api/announcements", async (req, res) => {
-  const [subsidy, central, local, housing, youth] = await Promise.allSettled([
-    callApi("https://api.odcloud.kr/api/15113968/v1/uddi:e7a38fd0-e38f-4c1f-91b6-b8b0bcc0e8f1", {
-      serviceKey: DATA_GO_KR_KEY, page: 1, perPage: 30,
-    }),
-    callApi("https://api.odcloud.kr/api/15090532/v1/uddi:2aa7a9de-b60c-494f-90eb-5d3ac47a7cdb", {
-      serviceKey: WELFARE_KEY, page: 1, perPage: 30,
-    }),
-    callApi("https://api.odcloud.kr/api/15108347/v1/uddi:6b72c6e8-de73-415d-a4d4-97a3c3f93b5c", {
-      serviceKey: WELFARE_KEY, page: 1, perPage: 30,
-    }),
-    callApi("https://api.odcloud.kr/api/15058476/v1/uddi:f0c1f4c5-e29b-4f9d-a7c8-3c4a3f5d9f3e", {
-      serviceKey: DATA_GO_KR_KEY, page: 1, perPage: 30,
-    }),
-    fetchAllYouthPolicies(),
-  ]);
+  const youth = await fetchAllYouthPolicies();
 
   res.json({
-    subsidy: subsidy.value ?? null,
-    central: central.value ?? null,
-    local:   local.value   ?? null,
-    housing: housing.value ?? null,
-    youth:   youth.value   ?? null,
+    subsidy: null,
+    central: null,
+    local:   null,
+    housing: null,
+    youth,
   });
 });
 
@@ -395,16 +384,7 @@ app.post("/api/ai/chat", async (req, res) => {
       const genMsg = genErr.message ?? "";
       console.warn("[ai/chat] Gemini 생성 실패 →  문서 요약 폴백:", genMsg.slice(0, 80));
 
-      // Gemini API 사용 불가 시 검색된 문서를 직접 요약해서 반환
-      if (
-        genMsg.includes("SERVICE_DISABLED") ||
-        genMsg.includes("API_KEY_SERVICE_BLOCKED") ||
-        genMsg.includes("403")
-      ) {
-        return res.status(403).json({ error: "GEMINI_API_DISABLED" });
-      }
-
-      // 기타 Gemini 오류 → 문서 내용 직접 전달
+      // Gemini 오류 시 검색된 문서를 직접 요약해서 반환
       const fallback = docs
         .slice(0, 3)
         .map((d) => {
