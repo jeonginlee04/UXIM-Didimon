@@ -7,7 +7,8 @@
     "dev": "concurrently \"node server/index.js\" \"vite\" --names \"server,vite\" --prefix-colors \"cyan,green\"",
     "dev:front": "vite",
     "dev:server": "node server/index.js",
-    "build": "tsc && vite build",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
     "preview": "vite preview"
   },
   "dependencies": {
